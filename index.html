@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CICS COBOL Editor Dev Studio 3.1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, [role="button"], a { touch-action: manipulation; }
+
+        :root {
+            --bg:          #2d2d30;
+            --sidebar-bg:  #252526;
+            --border:      #3f3f46;
+            --text:        #cccccc;
+            --text-dim:    #8c8c8c;
+            --text-bright: #ffffff;
+            --accent:      #007acc;
+            --accent-h:    #1a8ad4;
+            --btn-bg:      #3c3c3c;
+            --btn-h:       #505050;
+            --sel-bg:      #37373d;
+            --input-bg:    #3c3c3c;
+            --green:       #6a9955;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        /* ── Title bar ── */
+        .app-titlebar {
+            background: #1e1e1e;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border-bottom: 1px solid #000;
+            user-select: none;
+            flex-shrink: 0;
+            letter-spacing: .2px;
+        }
+
+        /* ── Layout body ── */
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ══════════════════════════════════
+           LEFT SIDEBAR
+        ══════════════════════════════════ */
+        .start-sidebar {
+            width: 178px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .start-logo {
+            padding: 20px 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .start-logo-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .start-logo-text { display: flex; flex-direction: column; }
+
+        .start-logo-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1.15;
+        }
+        .start-logo-title span { color: #f0c040; }
+
+        .start-logo-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 1px;
+        }
+
+        .start-nav-list {
+            display: flex;
+            flex-direction: column;
+            padding: 6px 0;
+            flex: 1;
+        }
+
+        .start-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            text-align: left;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background .12s;
+            width: 100%;
+            border-left: 3px solid transparent;
+        }
+        .start-nav-btn:hover { background: var(--btn-h); }
+        .start-nav-btn.active {
+            background: var(--sel-bg);
+            color: var(--text-bright);
+            border-left-color: var(--accent);
+        }
+
+        /* ══════════════════════════════════
+           CENTER
+        ══════════════════════════════════ */
+        .start-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 20px;
+            overflow: hidden;
+            gap: 14px;
+        }
+
+        .start-action-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .action-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-size: 14px;
+            font-family: inherit;
+            padding: 13px 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: background .12s, border-color .12s;
+        }
+        .action-btn:hover {
+            background: var(--btn-h);
+            border-color: var(--accent);
+        }
+        .action-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .action-btn.primary:hover { background: var(--accent-h); border-color: var(--accent-h); }
+
+        .recent-header {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .recent-load-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 10px;
+            padding: 2px 8px;
+            cursor: pointer;
+            transition: background .12s, color .12s;
+        }
+        .recent-load-btn:hover { background: var(--btn-h); color: var(--text-bright); }
+
+        .start-recent-list {
+            border: 1px solid var(--border);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .recent-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background .1s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-item:hover { background: var(--sel-bg); }
+        .recent-item-icon { font-size: 16px; flex-shrink: 0; }
+        .recent-item-info { min-width: 0; }
+        .recent-item-name { font-size: 13px; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .recent-item-path { font-size: 11px; color: var(--text-dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'IBM Plex Mono', monospace; }
+
+        .start-empty-msg {
+            padding: 28px 20px;
+            color: var(--text-dim);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* ══════════════════════════════════
+           RIGHT PANEL
+        ══════════════════════════════════ */
+        .start-right {
+            width: 310px;
+            background: var(--bg);
+            border-left: 1px solid var(--border);
+            padding: 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .right-label {
+            font-size: 12px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .right-select {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-size: 13px;
+            padding: 4px 8px;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+        }
+        .right-select:focus { border-color: var(--accent); }
+
+        .right-link {
+            color: var(--accent);
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .right-link:hover { text-decoration: underline; }
+
+        .right-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 12px;
+            padding: 5px 16px;
+            cursor: pointer;
+            transition: background .12s;
+            align-self: flex-start;
+        }
+        .right-btn:hover { background: var(--btn-h); }
+
+        .right-sep { height: 1px; background: var(--border); }
+
+        .right-pkg-list {
+            border: 1px solid var(--border);
+            overflow-y: auto;
+            min-height: 160px;
+            max-height: 200px;
+            flex-shrink: 0;
+        }
+
+        .pkg-item {
+            padding: 4px 8px;
+            font-size: 11.5px;
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            cursor: default;
+        }
+        .pkg-item:hover { background: var(--sel-bg); }
+
+        .right-extra-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .right-extra-row .right-label { margin: 0; white-space: nowrap; }
+
+        .right-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-size: 12px;
+            padding: 5px 8px;
+            outline: none;
+        }
+        .right-input:focus { border-color: var(--accent); }
+
+        .right-install-btn {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 9px 0;
+            cursor: pointer;
+            transition: background .12s;
+            width: 100%;
+        }
+        .right-install-btn:hover { background: var(--accent-h); }
+
+        /* scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+
+        /* ── Seções alternativas do centro ── */
+        .center-section { display: none; flex: 1; flex-direction: column; gap: 14px; }
+        .center-section.active { display: flex; }
+
+        .config-card {
+            background: var(--sel-bg);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .config-card-title { font-size: 13px; color: var(--text-bright); font-weight: 600; }
+        .config-card-desc { font-size: 11px; color: var(--text-dim); }
+
+        .form-row { display: flex; flex-direction: column; gap: 4px; }
+        .form-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .4px; }
+        .form-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-size: 13px;
+            padding: 7px 10px;
+            outline: none;
+        }
+        .form-input:focus { border-color: var(--accent); }
+
+        /* ── Modal novo projeto ── */
+        .npmod-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .npmod-overlay.open { display: flex; }
+        .npmod-box {
+            background: #2d2d30;
+            border: 1px solid var(--border);
+            width: 420px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.6);
+        }
+        .npmod-header {
+            background: #3c3c3c;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-bright);
+            border-bottom: 1px solid var(--border);
+        }
+        .npmod-header-left { display:flex; align-items:center; gap:8px; }
+        .npmod-close {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 2px;
+        }
+        .npmod-close:hover { color: var(--text-bright); }
+        .npmod-body { padding: 20px 18px; display: flex; flex-direction: column; gap: 14px; }
+        .npmod-field { display: flex; flex-direction: column; gap: 5px; }
+        .npmod-label { font-size: 12px; color: var(--text); }
+        .npmod-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-size: 13px;
+            padding: 6px 10px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .npmod-input:focus { border-color: var(--accent); }
+        .npmod-path-row { display: flex; gap: 4px; }
+        .npmod-path-row .npmod-input { flex: 1; }
+        .npmod-browse {
+            background: var(--btn-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 12px;
+            padding: 0 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .npmod-browse:hover { background: var(--btn-h); }
+        .npmod-footer {
+            background: #252526;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border);
+        }
+        .npmod-create {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            padding: 7px 28px;
+            cursor: pointer;
+            transition: background .12s;
+        }
+        .npmod-create:hover { background: var(--accent-h); }
+        .npmod-error { font-size: 11px; color: #f14c4c; min-height: 14px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: #323233;
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            padding: 10px 22px;
+            font-size: 13px;
+            border-radius: 3px;
+            transition: transform .25s ease;
+            z-index: 999;
+            box-shadow: 0 4px 16px rgba(0,0,0,.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ══════════════════════════════════
+           RESPONSIVO — Tablet (≤ 900px)
+        ══════════════════════════════════ */
+        @media (max-width: 900px) {
+            .start-right { display: none; }
+        }
+
+        /* ══════════════════════════════════
+           RESPONSIVO — Mobile (≤ 640px)
+        ══════════════════════════════════ */
+        @media (max-width: 640px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            .app-body {
+                flex-direction: column;
+                overflow: visible;
+            }
+
+            /* Sidebar vira barra horizontal */
+            .start-sidebar {
+                width: 100%;
+                flex-direction: row;
+                align-items: stretch;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+
+            .start-logo {
+                padding: 8px 12px;
+                border-bottom: none;
+                border-right: 1px solid var(--border);
+                flex-shrink: 0;
+                gap: 6px;
+            }
+
+            .start-logo-icon { font-size: 20px; }
+
+            .start-logo-title { font-size: 12px; }
+
+            .start-logo-sub { display: none; }
+
+            .start-nav-list {
+                flex-direction: row;
+                padding: 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .start-nav-list::-webkit-scrollbar { display: none; }
+
+            .start-nav-btn {
+                padding: 10px 14px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                white-space: nowrap;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+            .start-nav-btn.active {
+                background: var(--sel-bg);
+                border-left-color: transparent;
+                border-bottom-color: var(--accent);
+            }
+
+            /* Centro */
+            .start-center {
+                padding: 14px 12px;
+                overflow: visible;
+                flex: unset;
+                gap: 12px;
+            }
+
+            .start-recent-list {
+                flex: unset;
+                max-height: 280px;
+            }
+
+            /* Cards de configuração */
+            .config-card { padding: 12px 14px; }
+
+            /* Modal tela cheia no mobile */
+            .npmod-box {
+                width: calc(100% - 24px);
+                margin: 0 12px;
+            }
+
+            /* Toast mais largo */
+            .toast {
+                width: calc(100% - 32px);
+                text-align: center;
+                left: 16px;
+                right: 16px;
+                transform: translateY(60px);
+            }
+            .toast.show { transform: translateY(0); }
+
+            /* Painel direito: vira barra de botão no rodapé */
+            .start-right {
+                display: flex;
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 10px 12px;
+                flex-direction: row;
+                justify-content: center;
+                flex-shrink: 0;
+                overflow: visible;
+            }
+            .start-right .right-sep { display: none; }
+            .start-right .right-btn {
+                width: 100%;
+                max-width: 320px;
+                text-align: center;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* ══════════════════════════════════
+           RESPONSIVO — Pequeno (≤ 400px)
+        ══════════════════════════════════ */
+        @media (max-width: 400px) {
+            .app-titlebar { font-size: 11px; padding: 0 10px; }
+            .start-nav-btn { font-size: 11px; padding: 10px 10px; }
+            .action-btn { font-size: 13px; padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-titlebar">CICS COBOL Editor Dev Studio 3.1</div>
+
+<div class="app-body">
+
+    <!-- ═══ LEFT SIDEBAR ═══ -->
+    <div class="start-sidebar">
+        <div class="start-logo">
+            <div class="start-logo-icon">🖥️</div>
+            <div class="start-logo-text">
+                <div class="start-logo-title">CICS<span>COBOL</span></div>
+                <div class="start-logo-sub">Dev Studio 3.1</div>
+            </div>
+        </div>
+        <div class="start-nav-list">
+            <button class="start-nav-btn active" onclick="showSection('start', this)">Início</button>
+        </div>
+    </div>
+
+    <!-- ═══ CENTER ═══ -->
+    <div class="start-center">
+
+        <!-- Seção: Início -->
+        <div id="section-start" class="center-section active">
+            <div class="start-action-btns">
+                <button class="action-btn primary" onclick="newProject()">Projeto</button>
+            </div>
+            <div class="recent-header">
+                <span>Projetos Recentes</span>
+                <button class="recent-load-btn" onclick="loadRecent()" title="Carregar projetos recentes">⟳ Carregar</button>
+            </div>
+            <div class="start-recent-list" id="recentList">
+                <div class="start-empty-msg" id="recentEmpty">Clique em ⟳ Carregar para exibir os projetos recentes</div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div class="start-right">
+        <button class="right-btn" onclick="window.open('https://www.youtube.com/channel/UCKRPWL-CHcfTZl2SK5mfhKg','_blank','noopener,noreferrer')">Assistente →</button>
+
+        <div class="right-sep"></div>
+    </div>
+
+</div>
+
+<!-- Modal: Criar novo Projeto -->
+<div class="npmod-overlay" id="npmodOverlay" onclick="if(event.target===this)closeNewProjectModal()">
+    <div class="npmod-box">
+        <div class="npmod-header">
+            <div class="npmod-header-left">🖥️ <span>Criar novo projeto</span></div>
+            <button class="npmod-close" onclick="closeNewProjectModal()">✕</button>
+        </div>
+        <div class="npmod-body">
+            <div class="npmod-field">
+                <div class="npmod-label">Pasta do projeto:</div>
+                <div class="npmod-path-row">
+                    <input class="npmod-input" id="npPath" type="text" placeholder="Clique em ... para selecionar a pasta" readonly>
+                    <button class="npmod-browse" title="Selecionar pasta do projeto" onclick="pickProjectFolder()">...</button>
+                </div>
+            </div>
+            <div class="npmod-error" id="npError"></div>
+        </div>
+        <div class="npmod-footer">
+            <button class="npmod-create" onclick="createProject()">Criar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ── Módulos padrão ── */
+    var defaultPkgs = [
+        'cics-framework-base==1.0.0',
+        'cics-framework-core==2.1.0',
+        'bms-parser==3.0.2',
+        'cobol-validator==1.5.1',
+        'cics-web-bridge==0.8.4',
+        'cobol-formatter==0.2.1',
+        'bms-generator==1.2.3',
+        'cobol-utils==0.1.2',
+        'navigation-engine==1.0.4',
+        'validation-rules==2.2.3',
+        'export-tools==0.2.14',
+        'screen-parser==3.0.7',
+        'field-analyzer==1.0.1',
+    ];
+
+    function renderPkgs() {
+        var stored = JSON.parse(localStorage.getItem('cics_extra_pkgs') || '[]');
+        var all = defaultPkgs.concat(stored);
+        document.getElementById('pkgList').innerHTML = all.map(function(p) {
+            return '<div class="pkg-item">' + p + '</div>';
+        }).join('');
+    }
+    renderPkgs();
+
+    /* ── Projetos recentes ── */
+    function loadRecent() {
+        var recent = JSON.parse(localStorage.getItem('cics_recent_projects') || '[]');
+        var list = document.getElementById('recentList');
+        /* limpa itens anteriores mantendo apenas o empty-msg */
+        Array.from(list.querySelectorAll('.recent-item')).forEach(function(el) { el.remove(); });
+        var emptyMsg = document.getElementById('recentEmpty');
+        if (recent.length === 0) {
+            emptyMsg.textContent = 'Nenhum projeto recente';
+            emptyMsg.style.display = '';
+            return;
+        }
+        emptyMsg.style.display = 'none';
+        recent.forEach(function(proj) {
+            var div = document.createElement('div');
+            div.className = 'recent-item';
+            div.innerHTML =
+                '<div class="recent-item-icon">📄</div>' +
+                '<div class="recent-item-info">' +
+                    '<div class="recent-item-name">' + escHtml(proj.name) + '</div>' +
+                    '<div class="recent-item-path">' + escHtml(proj.path) + '</div>' +
+                '</div>';
+            div.onclick = function() { window.location.href = 'editor.html'; };
+            list.appendChild(div);
+        });
+    }
+
+    /* ── Navegação sidebar ── */
+    function showSection(name, btn) {
+        document.querySelectorAll('.center-section').forEach(function(el) { el.classList.remove('active'); });
+        document.querySelectorAll('.start-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+        var sec = document.getElementById('section-' + name);
+        if (sec) sec.classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    function checkUpdate(btn) {
+        document.querySelectorAll('.start-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        showToast('✅ Versão 3.1.0 — Você está atualizado!');
+    }
+
+    /* ── Modal novo projeto ── */
+    var _pickedDirHandle = null;   /* handle da pasta escolhida pelo seletor */
+
+    function newProject() { openNewProjectModal(); }
+
+    function openNewProjectModal() {
+        _pickedDirHandle = null;
+        document.getElementById('npPath').value = '';
+        document.getElementById('npError').textContent = '';
+        document.getElementById('npmodOverlay').classList.add('open');
+    }
+
+    async function pickProjectFolder() {
+        if (!('showDirectoryPicker' in window)) {
+            document.getElementById('npError').textContent = 'Seu navegador n\u00e3o suporta seletor de pasta. Use Chrome ou Edge.';
+            return;
+        }
+        try {
+            /* Abre o seletor lembrando o último local usado */
+            var handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'simucics-proj' });
+            _pickedDirHandle = handle;
+            document.getElementById('npPath').value = handle.name;
+            document.getElementById('npError').textContent = '';
+        } catch (e) {
+            if (e.name !== 'AbortError') {
+                document.getElementById('npError').textContent = 'N\u00e3o foi poss\u00edvel acessar a pasta.';
+            }
+        }
+    }
+
+    function closeNewProjectModal() {
+        document.getElementById('npmodOverlay').classList.remove('open');
+    }
+
+    async function createProject() {
+        /* ── Garante que uma pasta foi selecionada ── */
+        if (!_pickedDirHandle && 'showDirectoryPicker' in window) {
+            try {
+                var handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'simucics-proj' });
+                _pickedDirHandle = handle;
+                document.getElementById('npPath').value = handle.name;
+                document.getElementById('npError').textContent = '';
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+                document.getElementById('npError').textContent = 'N\u00e3o foi poss\u00edvel acessar a pasta.';
+                return;
+            }
+        }
+
+        if (!_pickedDirHandle) {
+            document.getElementById('npError').textContent = 'Selecione a pasta do projeto com o bot\u00e3o ...';
+            return;
+        }
+
+        var name = _pickedDirHandle.name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+        if (!name) name = 'PROJETO';
+
+        try {
+            var projDir = _pickedDirHandle;
+            /* Persiste o handle da pasta no IndexedDB para o editor usar */
+            await storeHandle('proj-dir', projDir);
+
+            /* ── Tenta ler arquivo .cics existente na pasta ── */
+            var existingState = null;
+            var existingCreated = new Date().toISOString();
+            try {
+                var existingFH = await projDir.getFileHandle(name + '.cics', { create: false });
+                var existingFile = await existingFH.getFile();
+                var existingProj = JSON.parse(await existingFile.text());
+                existingCreated = existingProj.created || existingCreated;
+                if (existingProj.data && existingProj.data.screens && existingProj.data.screens.length > 0) {
+                    existingState = existingProj.data;
+                }
+            } catch(e) { /* arquivo ainda n\u00e3o existe */ }
+
+            /* ── S\u00f3 cria o arquivo se n\u00e3o existir dados salvos ── */
+            if (!existingState) {
+                var newProj = { name: name, version: '3.1', created: existingCreated, data: {} };
+                var fh = await projDir.getFileHandle(name + '.cics', { create: true });
+                var wr = await fh.createWritable();
+                await wr.write(JSON.stringify(newProj, null, 2));
+                await wr.close();
+            }
+
+            /* ── Define estado no localStorage ── */
+            if (existingState) {
+                localStorage.setItem('cics_editor_state', JSON.stringify(existingState));
+            } else {
+                localStorage.removeItem('cics_editor_state');
+            }
+
+            localStorage.setItem('cics_current_project', JSON.stringify({
+                name: name,
+                path: projDir.name + '\\' + name + '.cics',
+                created: existingCreated
+            }));
+            saveRecentProject(name, projDir.name + '\\' + name + '.cics');
+            closeNewProjectModal();
+            window.location.href = 'editor.html';
+
+        } catch (e) {
+            document.getElementById('npError').textContent = 'Erro: ' + (e.message || e);
+        }
+    }
+
+    function finishCreate(name, fullPath) {
+        localStorage.setItem('cics_current_project', JSON.stringify({
+            name: name, path: fullPath, created: new Date().toISOString()
+        }));
+        saveRecentProject(name, fullPath);
+        closeNewProjectModal();
+        window.location.href = 'editor.html';
+    }
+
+    async function openProject() {
+        if ('showOpenFilePicker' in window) {
+            try {
+                var [fileHandle] = await window.showOpenFilePicker({
+                    types: [{ description: 'Projeto CICS', accept: { 'application/json': ['.cics'] } }],
+                    multiple: false,
+                    id: 'simucics-open'
+                });
+                var file = await fileHandle.getFile();
+                var text = await file.text();
+                var proj = JSON.parse(text);
+                localStorage.setItem('cics_current_project', JSON.stringify({
+                    name: proj.name || file.name.replace('.cics', ''),
+                    path: file.name,
+                    created: proj.created || new Date().toISOString()
+                }));
+                if (proj.data) localStorage.setItem('cics_editor_state', JSON.stringify(proj.data));
+                saveRecentProject(
+                    proj.name || file.name.replace('.cics', ''),
+                    file.name
+                );
+                window.location.href = 'editor.html';
+            } catch (e) {
+                if (e.name !== 'AbortError') showToast('⚠️ Não foi possível abrir o arquivo.');
+            }
+        } else {
+            /* Fallback para Firefox e outros */
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.cics';
+            input.onchange = function() {
+                var file = input.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        var proj = JSON.parse(e.target.result);
+                        localStorage.setItem('cics_current_project', JSON.stringify({
+                            name: proj.name || file.name.replace('.cics', ''),
+                            path: file.name,
+                            created: proj.created || new Date().toISOString()
+                        }));
+                        if (proj.data) localStorage.setItem('cics_editor_state', JSON.stringify(proj.data));
+                        saveRecentProject(
+                            proj.name || file.name.replace('.cics', ''),
+                            file.name
+                        );
+                        window.location.href = 'editor.html';
+                    } catch(err) { showToast('⚠️ Arquivo inválido.'); }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    }
+
+    function saveRecentProject(name, fullPath) {
+        var recent = JSON.parse(localStorage.getItem('cics_recent_projects') || '[]');
+        recent = recent.filter(function(p) { return p.name !== name; });
+        recent.unshift({ name: name, path: fullPath || ('C:\\simucics\\' + name + '\\' + name + '.cics') });
+        if (recent.length > 10) recent = recent.slice(0, 10);
+        localStorage.setItem('cics_recent_projects', JSON.stringify(recent));
+    }
+
+    /* ── Adicionar módulo extra ── */
+    function addPackage() {
+        var val = document.getElementById('extraPkgInput').value.trim();
+        if (!val) { showToast('⚠️ Digite o nome do módulo.'); return; }
+        var stored = JSON.parse(localStorage.getItem('cics_extra_pkgs') || '[]');
+        if (stored.indexOf(val) < 0) { stored.push(val); }
+        localStorage.setItem('cics_extra_pkgs', JSON.stringify(stored));
+        document.getElementById('extraPkgInput').value = '';
+        renderPkgs();
+        showToast('✅ Módulo "' + val + '" adicionado.');
+    }
+
+    /* ── Config / Perfil persistidos ── */
+    function saveConfig() {
+        localStorage.setItem('cics_config', JSON.stringify({
+            cobolVersion: document.getElementById('cobolVersion').value,
+            defaultDir:   (document.getElementById('defaultDir') || {value:''}).value
+        }));
+    }
+    function saveProfile() {
+        localStorage.setItem('cics_profile', JSON.stringify({
+            name:  document.getElementById('profileName').value,
+            org:   document.getElementById('profileOrg').value,
+            email: document.getElementById('profileEmail').value
+        }));
+    }
+    function loadConfig() {
+        try {
+            var cfg = JSON.parse(localStorage.getItem('cics_config') || '{}');
+            if (cfg.cobolVersion) document.getElementById('cobolVersion').value = cfg.cobolVersion;
+            if (cfg.defaultDir && document.getElementById('defaultDir'))
+                document.getElementById('defaultDir').value = cfg.defaultDir;
+        } catch(e) {}
+        try {
+            var prf = JSON.parse(localStorage.getItem('cics_profile') || '{}');
+            if (prf.name)  document.getElementById('profileName').value  = prf.name;
+            if (prf.org)   document.getElementById('profileOrg').value   = prf.org;
+            if (prf.email) document.getElementById('profileEmail').value = prf.email;
+        } catch(e) {}
+    }
+    loadConfig();
+
+    /* ── Toast ── */
+    var _toastTimer;
+    function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2800);
+    }
+
+    /* ── IndexedDB: persiste File System handles entre páginas ── */
+    function openHandleDB() {
+        return new Promise(function(resolve, reject) {
+            var req = indexedDB.open('cics-studio', 1);
+            req.onupgradeneeded = function(e) { e.target.result.createObjectStore('handles'); };
+            req.onsuccess = function(e) { resolve(e.target.result); };
+            req.onerror = function() { reject(req.error); };
+        });
+    }
+    async function storeHandle(key, handle) {
+        try {
+            var db = await openHandleDB();
+            await new Promise(function(resolve, reject) {
+                var tx = db.transaction('handles', 'readwrite');
+                tx.objectStore('handles').put(handle, key);
+                tx.oncomplete = resolve;
+                tx.onerror = function() { reject(tx.error); };
+            });
+        } catch(e) { /* silencioso */ }
+    }
+
+    /* ── Utils ── */
+    function escHtml(s) {
+        return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── Pull-to-refresh (mobile): puxa para baixo → recarrega a página ── */
+    (function() {
+        var THRESHOLD = 70;
+        var startY = 0;
+        var pulling = false;
+
+        /* Cria o indicador visual inline (index não usa styles.css) */
+        var style = document.createElement('style');
+        style.textContent = [
+            '.ptr-indicator{position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;',
+            'justify-content:center;gap:8px;background:#1e1e1e;color:#cccccc;font-size:12px;',
+            'font-family:"Segoe UI",system-ui,sans-serif;border-bottom:1px solid #3f3f46;',
+            'overflow:hidden;height:0;transition:height .2s ease;pointer-events:none;user-select:none;}',
+            '.ptr-indicator.ptr-visible{height:44px;}',
+            '.ptr-indicator.ptr-ready{color:#007acc;border-bottom-color:#007acc;}',
+            '.ptr-spinner{width:18px;height:18px;border:2px solid #555;border-top-color:#007acc;',
+            'border-radius:50%;animation:ptr-spin .6s linear infinite;display:none;}',
+            '.ptr-indicator.ptr-loading .ptr-spinner{display:block;}',
+            '.ptr-indicator.ptr-loading .ptr-arrow{display:none;}',
+            '@keyframes ptr-spin{to{transform:rotate(360deg)}}',
+            '.ptr-arrow{font-size:16px;transition:transform .2s ease;}',
+            '.ptr-indicator.ptr-ready .ptr-arrow{transform:rotate(180deg);}'
+        ].join('');
+        document.head.appendChild(style);
+
+        var ind = document.createElement('div');
+        ind.className = 'ptr-indicator';
+        ind.innerHTML = '<span class="ptr-arrow">↓</span><span class="ptr-spinner"></span><span class="ptr-text">Puxe para atualizar</span>';
+        document.body.prepend(ind);
+
+        document.addEventListener('touchstart', function(e) {
+            if (window.scrollY === 0 && e.touches.length === 1) {
+                startY = e.touches[0].clientY;
+                pulling = true;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!pulling) return;
+            var dist = e.touches[0].clientY - startY;
+            if (dist <= 0) { pulling = false; return; }
+            var ready = dist >= THRESHOLD;
+            ind.classList.add('ptr-visible');
+            ind.classList.toggle('ptr-ready', ready);
+            ind.querySelector('.ptr-text').textContent = ready ? 'Solte para atualizar' : 'Puxe para atualizar';
+        }, { passive: true });
+
+        document.addEventListener('touchend', function() {
+            if (!pulling) return;
+            pulling = false;
+            if (!ind.classList.contains('ptr-ready')) {
+                ind.classList.remove('ptr-visible', 'ptr-ready');
+                return;
+            }
+            ind.classList.add('ptr-loading');
+            ind.querySelector('.ptr-text').textContent = 'Atualizando…';
+            setTimeout(function() { window.location.reload(); }, 300);
+        }, { passive: true });
+    })();
+</script>
+</body>
+</html>
