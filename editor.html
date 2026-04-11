@@ -525,34 +525,62 @@
 
     <!-- Modal de Opções BMS -->
     <div class="modal-overlay" id="bmsOptionsModalOverlay">
-        <div class="modal export-modal" style="max-width: 500px;">
+        <div class="modal export-modal" style="max-width: 520px;">
             <div class="modal-header">
                 <h2 class="modal-title">📝 Opções de Exportação BMS</h2>
                 <button class="close-btn modal-close" onclick="closeBMSOptionsModal()">✕</button>
             </div>
             
             <div class="modal-body">
-                <p class="modal-description" style="margin-bottom: 25px;">
-                    Como deseja exportar os textos fixos (labels) da tela?
+                <p class="modal-description" style="margin-bottom: 10px; font-weight: 600;">
+                    Escopo da exportação:
+                </p>
+                <div style="display:flex;gap:24px;margin-bottom:10px;padding:10px 14px;background:#f5f5f5;border-radius:6px;border:1px solid #ccc;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:#222;">
+                        <input type="radio" name="bmsExportScope" value="current" id="bmsExportScopeCurrent" checked
+                               onchange="bmsExportScopeChanged()">
+                        <span>Apenas este mapa</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:#222;">
+                        <input type="radio" name="bmsExportScope" value="all" id="bmsExportScopeAll"
+                               onchange="bmsExportScopeChanged()">
+                        <span id="bmsExportScopeAllText">Todos os mapas</span>
+                    </label>
+                </div>
+
+                <!-- Checklist de mapas — visível só quando "Todos os mapas" está selecionado -->
+                <div id="bmsExportMapList" style="display:none;margin-bottom:16px;padding:10px 14px;background:#f9f9f9;border:1px solid #ccc;border-radius:6px;max-height:180px;overflow-y:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;font-weight:600;color:#333;">Selecione os mapas:</span>
+                        <span style="font-size:12px;">
+                            <a href="#" onclick="bmsExportCheckAll(true);return false;" style="color:#0078d4;margin-right:10px;">Todos</a>
+                            <a href="#" onclick="bmsExportCheckAll(false);return false;" style="color:#0078d4;">Nenhum</a>
+                        </span>
+                    </div>
+                    <div id="bmsExportMapItems" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <p class="modal-description" style="margin-bottom: 15px;">
+                    Como deseja exportar os textos fixos (labels)?
                 </p>
                 
                 <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <button class="export-option-btn" onclick="exportValidationsAsBMS(true)" style="text-align: left;">
+                    <button class="export-option-btn" onclick="exportBMSWithOptions(true)" style="text-align: left;">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div class="export-icon">✅</div>
                             <div>
                                 <div class="export-title">COM Variáveis</div>
-                                <div class="export-desc">Cria DFHMDF para cada label (LBL0, LBL1, etc.)</div>
+                                <div class="export-desc">Cria DFHMDF com nome para cada label (LBL0, LBL1…)</div>
                             </div>
                         </div>
                     </button>
                     
-                    <button class="export-option-btn" onclick="exportValidationsAsBMS(false)" style="text-align: left;">
+                    <button class="export-option-btn" onclick="exportBMSWithOptions(false)" style="text-align: left;">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div class="export-icon">💬</div>
                             <div>
                                 <div class="export-title">SEM Variáveis</div>
-                                <div class="export-desc">Labels apenas como comentários no arquivo</div>
+                                <div class="export-desc">Labels embutidos no DFHMDF sem nome de variável</div>
                             </div>
                         </div>
                     </button>

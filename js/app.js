@@ -3965,8 +3965,54 @@
                 showMessage('Selecione uma tela antes de exportar BMS!', 'error');
                 return;
             }
+            var scopeCurrent = document.getElementById('bmsExportScopeCurrent');
+            var scopeAll     = document.getElementById('bmsExportScopeAll');
+            var scopeAllText = document.getElementById('bmsExportScopeAllText');
+            var count        = app.screens.length;
+
+            // Resetar para "apenas este mapa"
+            if (scopeCurrent) scopeCurrent.checked = true;
+            if (scopeAll)     scopeAll.disabled = (count <= 1);
+            if (scopeAllText) scopeAllText.textContent = 'Todos os mapas' + (count > 1 ? ' (' + count + ')' : ' (apenas 1)');
+
+            // Preencher checklist de mapas
+            var items = document.getElementById('bmsExportMapItems');
+            if (items) {
+                items.innerHTML = '';
+                app.screens.forEach(function(s, idx) {
+                    var chk = document.createElement('label');
+                    chk.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#222;';
+                    var inp = document.createElement('input');
+                    inp.type = 'checkbox';
+                    inp.value = String(idx);
+                    inp.checked = true;
+                    inp.id = 'bmsMapChk_' + idx;
+                    var span = document.createElement('span');
+                    span.textContent = s.name + (s.bmsImported ? ' (importado)' : '');
+                    chk.appendChild(inp);
+                    chk.appendChild(span);
+                    items.appendChild(chk);
+                });
+            }
+
+            // Ocultar checklist (começa no modo "atual")
+            var mapList = document.getElementById('bmsExportMapList');
+            if (mapList) mapList.style.display = 'none';
+
             document.getElementById('validationExportModalOverlay').classList.remove('show');
             document.getElementById('bmsOptionsModalOverlay').classList.add('show');
+        }
+
+        function bmsExportScopeChanged() {
+            var all     = document.getElementById('bmsExportScopeAll');
+            var mapList = document.getElementById('bmsExportMapList');
+            if (mapList) mapList.style.display = (all && all.checked) ? '' : 'none';
+        }
+
+        function bmsExportCheckAll(state) {
+            var items = document.getElementById('bmsExportMapItems');
+            if (!items) return;
+            items.querySelectorAll('input[type=checkbox]').forEach(function(c) { c.checked = state; });
         }
 
         function closeBMSOptionsModal() {
@@ -5518,6 +5564,191 @@
             closeValidationExportModal();
         }
 
+        // ─── Funções auxiliares para exportação BMS limpa ───────────────────────────
+
+        // Extrai somente as linhas do bloco DFHMSD (antes do primeiro DFHMDI)
+        function _extractDFHMSDPart(bmsText) {
+            var lines = bmsText.split('\n');
+            var idx = lines.findIndex(function(l) { return /\bDFHMDI\b/i.test(l); });
+            if (idx <= 0) return '';
+            return lines.slice(0, idx).join('\n') + '\n';
+        }
+
+        // Extrai de DFHMDI até antes de DFHMSD TYPE=FINAL
+        // Substitui o nome no DFHMDI pelo nome real da tela (screen opcional)
+        function _extractDFHMDIPart(bmsText, screen) {
+            var lines = bmsText.split('\n');
+            var start = lines.findIndex(function(l) { return /\bDFHMDI\b/i.test(l); });
+            if (start < 0) return bmsText;
+            var end = lines.length;
+            for (var i = start; i < lines.length; i++) {
+                if (/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(lines[i])) { end = i; break; }
+            }
+            var block = lines.slice(start, end);
+            // Substituir nome no DFHMDI pelo screen.name atual (se fornecido)
+            if (screen) {
+                var mapName = screen.name.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
+                block[0] = block[0].replace(/^(\w+)(\s+DFHMDI\b)/i, mapName.padEnd(6) + '$2');
+            }
+            return block.join('\n') + '\n';
+        }
+
+        // Remove TYPE=FINAL / END do final do texto BMS gerado
+        function _stripBMSFinalBlock(bmsText) {
+            var lines = bmsText.split('\n');
+            var idx = -1;
+            for (var i = lines.length - 1; i >= 0; i--) {
+                if (/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(lines[i])) { idx = i; break; }
+            }
+            if (idx < 0) return bmsText;
+            // remover também linhas em branco imediatamente antes
+            while (idx > 0 && lines[idx - 1].trim() === '') idx--;
+            return lines.slice(0, idx).join('\n') + '\n';
+        }
+
+        // Remove linhas de comentário geradas pelo sistema (não as do BMS original)
+        function _stripBMSSystemComments(bmsText) {
+            return bmsText.split('\n').filter(function(line) {
+                if (!/^\s*\*/.test(line)) return true;
+                if (/^\*\s*={4,}/.test(line))                                      return false;
+                if (/^\*\s*(BMS MAP|Generated on|Tela:|Label var)/i.test(line))    return false;
+                if (/^\*\s{6}(Campo:|Field:|Validaç|Validation|CAMPO OBRIG|REQUIRED FIELD|Screen:)/i.test(line)) return false;
+                return true;
+            }).join('\n');
+        }
+
+        // Gera bloco DFHMSD sintético (sem comentários) a partir do nome da tela
+        function _syntheticDFHMSD(screenName) {
+            function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
+            var mapName = screenName.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var h = '';
+            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+            h += fmt('              MODE=INOUT,', true);
+            h += fmt('              STORAGE=AUTO,', true);
+            h += fmt('              TERM=3270,', true);
+            h += fmt('              TIOAPFX=YES,', true);
+            h += fmt('              TYPE=&SYSPARM');
+            h += '\n';
+            return h;
+        }
+
+        // Gera BMS limpo (sem marcadores do sistema) para uma lista de telas
+        function _buildCleanBMSExport(screens) {
+            if (!screens || screens.length === 0) return '';
+            function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
+
+            // ── tela única ────────────────────────────────────────────────────
+            if (screens.length === 1) {
+                var s = screens[0];
+                if (s.bmsSource) {
+                    // Não editada: usar bmsSource verbatim (inclui DFHMSD original)
+                    var bms = s.bmsSource;
+                    if (!/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(bms)) {
+                        bms += '\n' + fmt('       DFHMSD TYPE=FINAL') + fmt('       END');
+                    }
+                    return bms;
+                }
+                // Editada ou não importada: gerar limpo via generateBMSCode
+                return _stripBMSSystemComments(generateBMSCode(s));
+            }
+
+            // ── múltiplas telas ───────────────────────────────────────────────
+            // Estratégia confiável: gerar cada tela via generateBMSCode
+            // (os dados dos campos são sempre corretos; _bmsHeader preserva o cabeçalho original)
+            // Primeira tela: manter DFHMSD + DFHMDI + campos (sem TYPE=FINAL)
+            // Demais telas:  extrair só DFHMDI + campos (sem DFHMSD duplicado, sem TYPE=FINAL)
+            // Ao final: emitir um único TYPE=FINAL + END
+            var bms = '';
+            var dfhmsdEmitted = false;
+
+            screens.forEach(function(screen, i) {
+                // Gerar código limpo para esta tela
+                var code;
+                if (screen.bmsSource && /\bDFHMDI\b/i.test(screen.bmsSource)) {
+                    code = _stripBMSFinalBlock(screen.bmsSource);
+                } else {
+                    code = _stripBMSFinalBlock(_stripBMSSystemComments(generateBMSCode(screen)));
+                }
+
+                if (!dfhmsdEmitted) {
+                    // Primeira tela: emitir DFHMSD (do código ou sintético) + DFHMDI com nome correto
+                    if (/\bDFHMSD\b/i.test(code)) {
+                        bms += _extractDFHMSDPart(code);
+                    } else {
+                        bms += _syntheticDFHMSD(screen.name);
+                    }
+                    dfhmsdEmitted = true;
+                    bms += _extractDFHMDIPart(code, screen);
+                } else {
+                    // Demais telas: só o bloco DFHMDI com nome correto
+                    bms += _extractDFHMDIPart(code, screen);
+                }
+            });
+
+            // Finalização única
+            bms += fmt('       DFHMSD TYPE=FINAL');
+            bms += fmt('       END');
+            return bms;
+        }
+
+        // ─── exportBMSWithOptions ────────────────────────────────────────────────────
+        // Chamado pelos botões do modal de exportação BMS
+        function exportBMSWithOptions(includeLabels) {
+            var exportAll = document.getElementById('bmsExportScopeAll') &&
+                            document.getElementById('bmsExportScopeAll').checked;
+            var currentScreen = app.screens[app.currentScreenIndex];
+
+            if (!currentScreen) {
+                closeBMSOptionsModal();
+                showMessage('Selecione uma tela antes de exportar BMS!', 'error');
+                return;
+            }
+
+            var screensToExport;
+            if (exportAll) {
+                // Ler quais checkboxes estão marcados
+                var checked = [];
+                var items = document.getElementById('bmsExportMapItems');
+                if (items) {
+                    items.querySelectorAll('input[type=checkbox]').forEach(function(c) {
+                        if (c.checked) {
+                            var idx = parseInt(c.value);
+                            if (!isNaN(idx) && app.screens[idx]) checked.push(app.screens[idx]);
+                        }
+                    });
+                }
+                if (checked.length === 0) {
+                    showMessage('Selecione ao menos um mapa para exportar!', 'error');
+                    return;
+                }
+                screensToExport = checked;
+            } else {
+                screensToExport = [currentScreen];
+            }
+
+            var bmsText = _buildCleanBMSExport(screensToExport);
+
+            // Nome do arquivo
+            var fileName;
+            if (screensToExport.length > 1) {
+                // Tentar extrair nome do mapset do DFHMSD da primeira tela importada
+                var fi = screensToExport.find(function(s) { return s.bmsImported && s._bmsHeader; });
+                if (fi) {
+                    var m = fi._bmsHeader.match(/^(\w+)\s+DFHMSD/im);
+                    fileName = (m ? m[1] : screensToExport[0].name.substring(0, 6)) + '.bms';
+                } else {
+                    fileName = screensToExport[0].name.substring(0, 6) + 'set.bms';
+                }
+            } else {
+                fileName = screensToExport[0].name + '.bms';
+            }
+
+            downloadFile(bmsText, fileName, 'text/plain');
+            closeBMSOptionsModal();
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+
         function exportValidationsAsBMS(includeLabels = false) {
             // Função auxiliar para formatar linha BMS com 72 colunas e continuação
             function formatBMSLine(content, continuation = false) {
@@ -5617,12 +5848,7 @@
                 return;
             }
 
-            let bms = `* ========================================\n`;
-            bms += `* BMS MAP DEFINITIONS\n`;
-            bms += `* Generated on ${new Date().toLocaleString()}\n`;
-            bms += `* Tela: ${currentScreen.name}\n`;
-            bms += `* Label variables: ${includeLabels ? 'YES' : 'NO (comments only)'}\n`;
-            bms += `* ========================================\n`;
+            let bms = '';
             
             [currentScreen].forEach(screen => {
                 const mapName = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -5821,7 +6047,7 @@
                         const field = element.field;
                         const attrb = getBMSAttrString(field);
                         
-                        bms += `*      Field: ${field.label || element.name}\n`;
+                        // campo: sem comentário gerado pelo sistema
                         bms += formatBMSLine(`${element.name.padEnd(6)} DFHMDF POS=(${element.row + 1},${element.col + 1}),`, true);
                         bms += formatBMSLine(`              LENGTH=${field.length},`, true);
                         bms += formatBMSLine(`              ATTRB=${attrb}`);
@@ -5833,12 +6059,7 @@
                         bms += formatBMSLine(`              ATTRB=ASKIP`);
                         
                         // Comentários sobre validações
-                        if (field.validationRules.length > 0) {
-                            bms += `*      Validations: ${field.validationRules.map(r => r.type).join(', ')}\n`;
-                        }
-                        if (field.isRequired) {
-                            bms += `*      REQUIRED FIELD\n`;
-                        }
+                        // (removidos da saída — não gerar marcações do sistema)
                     }
                 });
                 
@@ -5846,11 +6067,6 @@
                 bms += formatBMSLine(`       END`);
                 bms += `\n`;
             });
-            
-            bms += `* ========================================\n`;
-            bms += `* VALIDATION KEYS CONFIGURATION\n`;
-            bms += `* Keys that trigger validation: ${(app.validationKeys || []).join(', ')}\n`;
-            bms += `* ========================================\n`;
             
             downloadFile(bms, `${currentScreen.name}-map.txt`, 'text/plain');
             closeBMSOptionsModal();
@@ -6586,13 +6802,19 @@
         }
 
         // Extrai o bloco DFHMSD + DFHMDI do source BMS original (salvo em screen._bmsHeader)
-        // ou reconstrói a partir dos dados disponíveis
+        // ou reconstrói a partir dos dados disponíveis.
+        // O nome do DFHMDI é sempre substituído pelo screen.name atual (evita nomes desatualizados).
         function _extractBMSHeader(screen) {
-            // Se o header original foi preservado, usar diretamente
-            if (screen._bmsHeader) return screen._bmsHeader + '\n';
-            // Caso contrário, gerar header neutro sem comentário de geração automática
             function fmt(content, cont) { return content.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
-            var mapName    = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var mapName = screen.name.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+            if (screen._bmsHeader) {
+                // Substituir o nome no DFHMDI pelo nome atual da tela
+                var hdr = screen._bmsHeader;
+                hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.padEnd(6) + '$2');
+                return hdr + '\n';
+            }
+            // Caso contrário, gerar header neutro
             var mapSetName = mapName + 'M';
             var h = '';
             h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
@@ -6795,7 +7017,10 @@
                     // Limitar LENGTH ao máximo BMS-seguro: attr em col+1(1-idx), dados em col+2..80
                     var fieldBMSLength = Math.min(field.length, 79 - element.col);
                     var afterCol = element.col + fieldBMSLength + 2; // 1-indexed
-                    bms += '*      Campo: ' + (field.label || element.name) + '\n';
+                    // Comentários de campo apenas para telas não importadas
+                    if (!screen.bmsImported) {
+                        bms += '*      Campo: ' + (field.label || element.name) + '\n';
+                    }
                     bms += formatBMSLine(element.name.padEnd(6) + ' DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
                     bms += formatBMSLine('              LENGTH=' + fieldBMSLength + ',', true);
                     bms += formatBMSLine('              ATTRB=' + attrb);
@@ -6805,10 +7030,12 @@
                         bms += formatBMSLine('              LENGTH=0,', true);
                         bms += formatBMSLine('              ATTRB=ASKIP');
                     }
-                    if (field.validationRules && field.validationRules.length > 0)
-                        bms += '*      Validações: ' + field.validationRules.map(function(r) { return r.type; }).join(', ') + '\n';
-                    if (field.isRequired)
-                        bms += '*      CAMPO OBRIGATÓRIO\n';
+                    if (!screen.bmsImported) {
+                        if (field.validationRules && field.validationRules.length > 0)
+                            bms += '*      Validações: ' + field.validationRules.map(function(r) { return r.type; }).join(', ') + '\n';
+                        if (field.isRequired)
+                            bms += '*      CAMPO OBRIGATÓRIO\n';
+                    }
                 }
             });
 
