@@ -388,6 +388,11 @@
                     screen.pfKeys = sd.pfKeys;
                 }
 
+                /* Restaurar metadados de import BMS */
+                if (sd.bmsImported) screen.bmsImported = true;
+                if (sd.bmsSource)   screen.bmsSource   = sd.bmsSource;
+                if (sd._bmsHeader)  screen._bmsHeader  = sd._bmsHeader;
+
                 return screen;
             });
 
@@ -730,11 +735,16 @@
                 
                 // Detectar se é um arquivo BMS
                 if (isBMSFile(content)) {
-                    // Processar arquivo BMS
-                    const screen = parseBMSToScreen(content, file.name);
-                    if (screen) {
-                        app.screens.push(screen);
-                        showMessage(`Arquivo BMS importado: ${file.name}`, 'success');
+                    // Processar arquivo BMS — pode retornar várias telas (um DFHMDI = uma tela)
+                    const bmsScreens = parseBMSToScreen(content, file.name);
+                    if (bmsScreens && bmsScreens.length > 0) {
+                        for (const screen of bmsScreens) {
+                            app.screens.push(screen);
+                        }
+                        const msg = bmsScreens.length === 1
+                            ? `Tela importada de: ${file.name}`
+                            : `${bmsScreens.length} telas importadas de: ${file.name}`;
+                        showMessage(msg, 'success');
                     }
                 } else {
                     // Processar como arquivo de texto normal (3270)
@@ -796,86 +806,156 @@
             return content.includes('DFHMSD') || content.includes('DFHMDI') || content.includes('DFHMDF');
         }
 
-        // Parsear arquivo BMS e criar Screen
+        // Parsear arquivo BMS e criar Screen(s) — retorna array (um DFHMDI = uma tela)
         function parseBMSToScreen(bmsContent, fileName) {
             try {
-                const screenName = fileName.replace(/\.[^.]+$/, '');
-                const screen = new Screen(screenName, ''); // Criar tela vazia
-                screen.outputFields = []; // Campos PROT sem INITIAL (áreas de saída)
-                
+                const fileBaseName = fileName.replace(/\.[^.]+$/, '');
+                const screens = [];
+                let currentScreen = null;
+                let pfKeysFound = {};
+
+                // Finalizar tela atual: criar regras de navegação e empurrar para o array
+                const flushScreen = () => {
+                    if (!currentScreen) return;
+                    currentScreen.pfKeys = pfKeysFound;
+                    // Salvar source bruto: header DFHMSD + bloco DFHMDI atual
+                    const blockSrc = [...headerLines, ...rawBlockLines].join('\n');
+                    currentScreen.bmsSource = blockSrc || null;
+                    currentScreen.bmsImported = true; // marcador: veio de arquivo BMS
+                    // Salvar o bloco DFHMSD+DFHMDI original para regeneração após edição
+                    // Extrair só as linhas até (e incluindo) o DFHMDI
+                    const allHdrLines = [...headerLines, ...rawBlockLines];
+                    const dfhmdiIdx = allHdrLines.findIndex(l => /DFHMDI/i.test(l));
+                    currentScreen._bmsHeader = dfhmdiIdx >= 0
+                        ? allHdrLines.slice(0, dfhmdiIdx + 1).join('\n') + '\n*'
+                        : null;
+                    for (const [key, label] of Object.entries(pfKeysFound)) {
+                        const existingRule = app.navigationRules.find(r =>
+                            r.fromScreen === currentScreen.id && r.key === key
+                        );
+                        if (!existingRule) {
+                            app.navigationRules.push({
+                                id: Date.now() + Math.random(),
+                                fromScreen: currentScreen.id,
+                                toScreen: null,
+                                key: key,
+                                action: 'navigate',
+                                message: '',
+                                label: label
+                            });
+                        }
+                    }
+                    screens.push(currentScreen);
+                    currentScreen = null;
+                    pfKeysFound = {};
+                    rawBlockLines = [];
+                };
+
                 // Parsear BMS linha por linha
                 const lines = bmsContent.split('\n');
                 let currentLine = '';
-                const pfKeysFound = {}; // Guardar PF keys encontradas no BMS
+                const headerLines = [];  // linhas DFHMSD antes do primeiro DFHMDI
+                let rawBlockLines = [];  // linhas brutas do bloco DFHMDI atual
                 
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i].replace(/\r$/, ''); // Remover \r do Windows
                     
+                    // Acumular linha bruta no bloco corrente (antes de filtrar)
+                    if (currentScreen) {
+                        rawBlockLines.push(line);
+                    } else {
+                        headerLines.push(line);
+                    }
+
                     // Ignorar linhas de comentário (col 1 = '*') e linhas vazias
                     if (line.trim() === '' || line[0] === '*') { currentLine = ''; continue; }
                     
-                    // Concatenar linhas com continuação:
-                    // - col 72 = '-' (continuação padrão assembler)
-                    // - linha termina com ',' (mais operandos na próxima linha)
-                    currentLine += line.substring(0, 72).trimEnd();
-                    const isContinuation = line.charAt(71) === '-' || currentLine.trimEnd().endsWith(',');
-                    if (isContinuation) {
-                        continue; // Linha continua na próxima
+                    // Detectar tipo de continuação antes de acumular
+                    const isStringCont = /INITIAL='[^']*$/.test(currentLine); // literal de string ainda aberto
+                    const hasColCont   = line.length > 71 && line.charAt(71) !== ' '; // qualquer char não-branco em col 72
+
+                    // Acumular conforme o tipo:
+                    if (isStringCont) {
+                        // Continuação de literal: strip indentação inicial (colunas 1-15 em assembler)
+                        // e não incluir o marcador de col 72 se houver
+                        currentLine += line.substring(0, hasColCont ? 71 : 72).replace(/^\s+/, '');
+                    } else if (hasColCont) {
+                        // Col 72 preenchida: não incluir o marcador de continuação no conteúdo
+                        currentLine += line.substring(0, 71).trimEnd();
+                    } else {
+                        currentLine += line.substring(0, 72).trimEnd();
                     }
+
+                    // Continuação: col 72, vírgula final, ou literal de string ainda aberto
+                    const isContinuation = hasColCont
+                        || currentLine.trimEnd().endsWith(',')
+                        || /INITIAL='[^']*$/.test(currentLine);
+                    if (isContinuation) continue;
                     
+                    const fullLine = currentLine;
+                    currentLine = '';
+
+                    // DFHMDI → nova tela
+                    if (fullLine.includes('DFHMDI')) {
+                        flushScreen(); // salvar tela anterior
+                        const mapNameMatch = fullLine.match(/^(\w{1,8})\s+DFHMDI/i);
+                        const mapName = mapNameMatch ? mapNameMatch[1] : `${fileBaseName}_${screens.length + 1}`;
+                        currentScreen = new Screen(mapName, '');
+                        currentScreen.outputFields = [];
+                        rawBlockLines = [];
+                        // A linha DFHMDI foi adicionada em headerLines (pois currentScreen era null antes)
+                        // Movê-la para rawBlockLines
+                        const dfhmdiRaw = headerLines.pop();
+                        if (dfhmdiRaw !== undefined) rawBlockLines.push(dfhmdiRaw);
+                        continue;
+                    }
+
+                    // DFHMSD TYPE=FINAL → encerra
+                    if (fullLine.includes('DFHMSD')) continue;
+
                     // Processar linha completa
-                    if (currentLine.includes('DFHMDF')) {
-                        const field = parseDFHMDFLine(currentLine);
+                    if (fullLine.includes('DFHMDF')) {
+                        // BMS sem DFHMDI: criar tela pelo nome do arquivo
+                        if (!currentScreen) {
+                            currentScreen = new Screen(fileBaseName, '');
+                            currentScreen.outputFields = [];
+                        }
+                        const field = parseDFHMDFLine(fullLine);
                         if (field) {
                             // Se tem INITIAL, é um label estático
                             if (field.initial) {
                                 // Adicionar texto estático na tela
                                 for (let col = 0; col < field.initial.length; col++) {
                                     if (field.row < 24 && field.col + col < 80) {
-                                        screen.data[field.row][field.col + col] = field.initial[col];
+                                        currentScreen.data[field.row][field.col + col] = field.initial[col];
                                     }
                                 }
                                 
-                                // Detectar PF keys no INITIAL (formato: PF3=SAIR, PF7/PF8=NAVEGAR, etc)
+                                // Detectar PF keys no INITIAL
                                 const text = field.initial;
-                                console.log('[BMS Parser] Testando INITIAL:', text);
                                 
-                                // Padrão 1: PF3=SAIR (captura labels com espaços e caracteres especiais)
+                                // Padrão 1: PF3=SAIR
                                 const matches1 = text.matchAll(/PF(\d+)\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/gi);
                                 for (const match of matches1) {
-                                    const key = `PF${match[1]}`;
                                     const label = match[2].trim();
-                                    if (label) {
-                                        pfKeysFound[key] = label;
-                                        console.log(`[PF Detection] ${key} = "${label}"`);
-                                    }
+                                    if (label) pfKeysFound[`PF${match[1]}`] = label;
                                 }
                                 
                                 // Padrão 2: ENTER=CONFIRMAR
                                 const enterMatch = text.match(/ENTER\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/i);
                                 if (enterMatch) {
                                     const label = enterMatch[1].trim();
-                                    if (label) {
-                                        pfKeysFound['ENTER'] = label;
-                                        console.log(`[PF Detection] ENTER = "${label}"`);
-                                    }
+                                    if (label) pfKeysFound['ENTER'] = label;
                                 }
                                 
-                                console.log('[BMS Parser] PF Keys encontradas até agora:', pfKeysFound);
-                                
-                                // Padrão 3: PF7/PF8=NAVEGAR (múltiplas keys com mesmo label)
+                                // Padrão 3: PF7/PF8=NAVEGAR
                                 const matches2 = text.matchAll(/PF(\d+)(?:\/PF(\d+))+=([\w\s-]+)/gi);
                                 for (const match of matches2) {
-                                    // Extrair todos os números de PF
                                     const pfNumbers = match[0].match(/PF(\d+)/gi);
                                     const label = match[match.length - 1].trim();
-                                    
                                     if (pfNumbers && label) {
                                         pfNumbers.forEach(pf => {
-                                            const num = pf.match(/PF(\d+)/i)[1];
-                                            const key = `PF${num}`;
-                                            pfKeysFound[key] = label;
-                                            console.log(`PF key encontrada: ${key} = ${label}`);
+                                            pfKeysFound[`PF${pf.match(/PF(\d+)/i)[1]}`] = label;
                                         });
                                     }
                                 }
@@ -902,11 +982,11 @@
                                     newField.label = field.name;
                                 }
                                 
-                                screen.fields.push(newField);
+                                currentScreen.fields.push(newField);
                             }
                             // Se tem LENGTH > 0 e é PROT sem INITIAL, é área de saída (preenchida pelo COBOL)
                             else if (field.length > 0 && !field.attrb.includes('ASKIP')) {
-                                screen.outputFields.push({
+                                currentScreen.outputFields.push({
                                     row:    field.row,
                                     col:    field.col,
                                     length: field.length,
@@ -916,44 +996,15 @@
                             }
                         }
                     }
-                    
-                    currentLine = '';
                 }
                 
-                // Salvar PF keys no objeto screen
-                screen.pfKeys = pfKeysFound;
-                console.log('[BMS Parser] PF Keys salvas na tela:', screen.pfKeys);
-                console.log('[BMS Parser] Total encontradas:', Object.keys(pfKeysFound).length);
+                flushScreen(); // salvar última tela
                 
-                // Criar regras de navegação para PF keys encontradas
-                if (Object.keys(pfKeysFound).length > 0) {
-                    console.log('Total de PF keys encontradas:', pfKeysFound);
-                    for (const [key, label] of Object.entries(pfKeysFound)) {
-                        // Verificar se já existe regra para esta tela + tecla
-                        const existingRule = app.navigationRules.find(r => 
-                            r.fromScreen === screen.id && r.key === key
-                        );
-                        
-                        if (!existingRule) {
-                            app.navigationRules.push({
-                                id: Date.now() + Math.random(),
-                                fromScreen: screen.id,
-                                toScreen: null,
-                                key: key,
-                                action: 'navigate',
-                                message: '',
-                                label: label
-                            });
-                        }
-                    }
-                    showMessage(`${Object.keys(pfKeysFound).length} regra(s) de navegação criadas automaticamente`, 'success');
-                }
-                
-                return screen;
+                return screens;
             } catch (error) {
                 console.error('Erro ao parsear BMS:', error);
                 showMessage('Erro ao importar arquivo BMS: ' + error.message, 'error');
-                return null;
+                return [];
             }
         }
 
@@ -1733,16 +1784,39 @@
                     let previewLines = ta.value.split('\n').slice(0, 24).map(l => l.slice(0, 80));
                     let previewContent = previewLines.join('\n');
                     if (app._editPFLines) previewContent += '\n' + app._editPFLines;
-                    const prevContent = screen.content;
-                    const prevFields  = screen.fields;
-                    const prevData    = screen.data;
+                    const prevContent   = screen.content;
+                    const prevFields    = screen.fields;
+                    const prevData      = screen.data;
+                    const prevBmsSrc    = screen.bmsSource;
+                    const prevBmsImp    = screen.bmsImported;
+                    const prevBmsHdr    = screen._bmsHeader;
                     screen.content = previewContent;
+                    // Sem bmsSource: generateBMSCode será usado no preview
+                    screen.bmsSource = null;
                     screen.parseContent();
+                    // Restaurar flags e bmsVariable dos campos originais para o preview
+                    if (prevBmsImp) {
+                        screen.bmsImported = true;
+                        if (prevBmsHdr) screen._bmsHeader = prevBmsHdr;
+                    }
+                    if ((prevBmsSrc || prevBmsImp) && prevFields) {
+                        const pvMap = {};
+                        prevFields.forEach(function(f) {
+                            if (f.bmsVariable) pvMap[f.row + ':' + f.col] = f.bmsVariable;
+                        });
+                        screen.fields.forEach(function(f) {
+                            const k = f.row + ':' + f.col;
+                            if (pvMap[k]) f.bmsVariable = pvMap[k];
+                        });
+                    }
                     updateCodePanel();
                     // Restaurar estado real (sem aplicar ao terminal)
-                    screen.content = prevContent;
-                    screen.fields  = prevFields;
-                    screen.data    = prevData;
+                    screen.content      = prevContent;
+                    screen.fields       = prevFields;
+                    screen.data         = prevData;
+                    screen.bmsSource    = prevBmsSrc;
+                    screen.bmsImported  = prevBmsImp;
+                    screen._bmsHeader   = prevBmsHdr;
                 }
             };
             ta._editorCursor = function() { _editorUpdateStatus(ta); };
@@ -1791,7 +1865,36 @@
                 if (app._editPFLines) newContent += '\n' + app._editPFLines;
 
                 screen.content = newContent;
+
+                // Salvar mapeamento posição → bmsVariable dos campos originais
+                // para reutilizar os nomes do BMS importado após o re-parse
+                const bmsVarByPos = {};
+                const wasBmsImported = !!screen.bmsImported;
+                const savedBmsHeader = screen._bmsHeader || null;
+                if (screen.bmsSource || wasBmsImported) {
+                    (screen.fields || []).forEach(function(f) {
+                        if (f.bmsVariable) bmsVarByPos[f.row + ':' + f.col] = f.bmsVariable;
+                    });
+                }
+
+                // Descartar bmsSource: após edição o BMS será regenerado via generateBMSCode,
+                // mas com os nomes originais restaurados onde a posição coincide
+                screen.bmsSource = null;
                 screen.parseContent();
+
+                // Restaurar bmsVariable nos campos que permaneceram na mesma posição
+                if (Object.keys(bmsVarByPos).length > 0) {
+                    screen.fields.forEach(function(f) {
+                        const key = f.row + ':' + f.col;
+                        if (bmsVarByPos[key]) f.bmsVariable = bmsVarByPos[key];
+                    });
+                }
+
+                // Restaurar flags de origem BMS após re-parse
+                if (wasBmsImported) {
+                    screen.bmsImported = true;
+                    if (savedBmsHeader) screen._bmsHeader = savedBmsHeader;
+                }
 
                 app.fields = screen.fields;
                 app.currentFieldIndex = 0;
@@ -1813,7 +1916,13 @@
                 if (selectedFieldIndex >= 0) renderFieldConfig();
 
                 markDirty();
-                showMessage('Layout atualizado! BMS e COBOL regenerados.', 'success');
+                const wasImported = !!screen.bmsSource;
+                showMessage(
+                    wasImported
+                        ? 'Layout atualizado! COBOL regenerado (BMS original preservado).'
+                        : 'Layout atualizado! BMS e COBOL regenerados.',
+                    'success'
+                );
             }
         }
 
@@ -4326,6 +4435,9 @@
                         name: s.name,
                         content: s.content,
                         pfKeys: s.pfKeys || {},
+                        bmsSource: s.bmsSource || null,
+                        bmsImported: s.bmsImported || false,
+                        _bmsHeader: s._bmsHeader || null,
                         fields: s.fields.map(function(f) {
                             return {
                                 row: f.row,
@@ -6473,6 +6585,28 @@
             updateCodePanel();
         }
 
+        // Extrai o bloco DFHMSD + DFHMDI do source BMS original (salvo em screen._bmsHeader)
+        // ou reconstrói a partir dos dados disponíveis
+        function _extractBMSHeader(screen) {
+            // Se o header original foi preservado, usar diretamente
+            if (screen._bmsHeader) return screen._bmsHeader + '\n';
+            // Caso contrário, gerar header neutro sem comentário de geração automática
+            function fmt(content, cont) { return content.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
+            var mapName    = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var mapSetName = mapName + 'M';
+            var h = '';
+            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+            h += fmt('              MODE=INOUT,', true);
+            h += fmt('              STORAGE=AUTO,', true);
+            h += fmt('              TERM=3270,', true);
+            h += fmt('              TIOAPFX=YES,', true);
+            h += fmt('              TYPE=&SYSPARM');
+            h += '\n';
+            h += fmt(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+            h += '*\n';
+            return h;
+        }
+
         function generateBMSCode(screen) {
             if (!screen) {
                 return [
@@ -6556,20 +6690,29 @@
             var mapSetName = mapName + 'M';
 
             var bms = '';
-            bms += '* ========================================\n';
-            bms += '* BMS MAP DEFINITION\n';
-            bms += '* Tela: ' + screen.name + '\n';
-            bms += '* ========================================\n\n';
 
-            bms += formatBMSLine(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
-            bms += formatBMSLine('              MODE=INOUT,', true);
-            bms += formatBMSLine('              STORAGE=AUTO,', true);
-            bms += formatBMSLine('              TERM=3270,', true);
-            bms += formatBMSLine('              TIOAPFX=YES,', true);
-            bms += formatBMSLine('              TYPE=&SYSPARM');
-            bms += '\n';
-            bms += formatBMSLine(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
-            bms += '*\n';
+            if (screen.bmsImported) {
+                // Tela importada de BMS: reutilizar o bloco DFHMSD/DFHMDI original
+                // Extrair do bmsSource original (se disponível) antes de ser zerado,
+                // ou reconstruir a partir dos nomes originais preservados no screen
+                var origHeader = _extractBMSHeader(screen);
+                bms += origHeader;
+            } else {
+                bms += '* ========================================\n';
+                bms += '* BMS MAP DEFINITION\n';
+                bms += '* Tela: ' + screen.name + '\n';
+                bms += '* ========================================\n\n';
+
+                bms += formatBMSLine(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+                bms += formatBMSLine('              MODE=INOUT,', true);
+                bms += formatBMSLine('              STORAGE=AUTO,', true);
+                bms += formatBMSLine('              TERM=3270,', true);
+                bms += formatBMSLine('              TIOAPFX=YES,', true);
+                bms += formatBMSLine('              TYPE=&SYSPARM');
+                bms += '\n';
+                bms += formatBMSLine(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+                bms += '*\n';
+            }
 
             // Coletar textos estáticos da tela
             var staticTexts = [];
@@ -6818,7 +6961,10 @@
             var prevScroll = scrollToNav ? -1 : el.scrollTop;
             try {
                 if (activeTab === 'bms') {
-                    el.innerHTML = _wrapCodeLines(syntaxHighlightBMS(generateBMSCode(screen)));
+                    const bmsText = (screen && screen.bmsSource)
+                        ? screen.bmsSource
+                        : generateBMSCode(screen);
+                    el.innerHTML = _wrapCodeLines(syntaxHighlightBMS(bmsText));
                 } else {
                     el.innerHTML = _wrapCodeLines(syntaxHighlightCobol(generateCobolCode(screen)));
                 }
