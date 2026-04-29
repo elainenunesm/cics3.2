@@ -5588,7 +5588,7 @@
             // Substituir nome no DFHMDI pelo screen.name atual (se fornecido)
             if (screen) {
                 var mapName = screen.name.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
-                block[0] = block[0].replace(/^(\w+)(\s+DFHMDI\b)/i, mapName.substring(0,6).padEnd(6) + '  DFHMDI');
+                block[0] = block[0].replace(/^(\w+)(\s+DFHMDI\b)/i, mapName.padEnd(6) + '$2');
             }
             return block.join('\n') + '\n';
         }
@@ -5622,7 +5622,7 @@
             function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
             var mapName = screenName.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
             var h = '';
-            h += fmt(mapName.substring(0,6).padEnd(6) + '  DFHMSD LANG=COBOL,', true);
+            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
             h += fmt('              MODE=INOUT,', true);
             h += fmt('              STORAGE=AUTO,', true);
             h += fmt('              TERM=3270,', true);
@@ -5644,7 +5644,7 @@
                     // Não editada: usar bmsSource verbatim (inclui DFHMSD original)
                     var bms = s.bmsSource;
                     if (!/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(bms)) {
-                        bms += '\n' + fmt('        DFHMSD TYPE=FINAL') + fmt('        END');
+                        bms += '\n' + fmt('       DFHMSD TYPE=FINAL') + fmt('       END');
                     }
                     return bms;
                 }
@@ -5686,8 +5686,8 @@
             });
 
             // Finalização única
-            bms += fmt('        DFHMSD TYPE=FINAL');
-            bms += fmt('        END');
+            bms += fmt('       DFHMSD TYPE=FINAL');
+            bms += fmt('       END');
             return bms;
         }
 
@@ -5775,8 +5775,7 @@
                     }
                     
                     // Montar a linha BMS para calcular o tamanho
-                    const _vn1 = varName.substring(0, 6);
-                    const prefix = includeVar && isFirstDFHMDF ? _vn1.padEnd(6) + '  ' : '        ';
+                    const prefix = includeVar && isFirstDFHMDF ? varName.padEnd(6) : '       ';
                     
                     // Tentar encaixar o máximo de texto possível
                     let maxTextLength = availableSpace;
@@ -5786,7 +5785,7 @@
                         const testChunk = remainingText.substring(0, maxTextLength);
                         
                         // Construir linha BMS completa para testar
-                        const posLine = `${prefix}DFHMDF POS=(${row + 1},${currentCol + 1}),`;
+                        const posLine = `${prefix} DFHMDF POS=(${row + 1},${currentCol + 1}),`;
                         const lengthLine = `              LENGTH=${testChunk.length},`;
                         const attrbLine = `              ATTRB=(ASKIP,NORM),`;
                         const initialLine = `              INITIAL='${testChunk}'`;
@@ -5827,16 +5826,15 @@
                     const actualLength = chunk.length;
                     
                     // Gerar o DFHMDF para este pedaço
-                    const _vn2 = varName.substring(0, 6);
-                    const prefix2 = includeVar && isFirstDFHMDF ? _vn2.padEnd(6) + '  ' : '        ';
-                    result += formatBMSLine(`${prefix2}DFHMDF POS=(${row + 1},${currentCol + 1}),`, true);
+                    const prefix2 = includeVar && isFirstDFHMDF ? varName.padEnd(6) : '       ';
+                    result += formatBMSLine(`${prefix2} DFHMDF POS=(${row + 1},${currentCol + 1}),`, true);
                     result += formatBMSLine(`              LENGTH=${actualLength},`, true);
                     result += formatBMSLine(`              ATTRB=(ASKIP,NORM),`, true);
                     result += formatBMSLine(`              INITIAL='${chunk}'`);
                     
                     // Atualizar para próxima iteração
                     remainingText = remainingText.substring(chunk.length).trimStart();
-                    currentCol += actualLength + 1;
+                    currentCol += actualLength;
                     isFirstDFHMDF = false;
                 }
                 
@@ -5857,7 +5855,7 @@
                 const mapSetName = mapName + 'M';
                 
                 // DFHMSD - Padrão com cada comando em uma linha
-                bms += formatBMSLine(`${mapName.substring(0,6).padEnd(6)}  DFHMSD LANG=COBOL,`, true);
+                bms += formatBMSLine(`${mapName.padEnd(6)} DFHMSD LANG=COBOL,`, true);
                 bms += formatBMSLine(`              MODE=INOUT,`, true);
                 bms += formatBMSLine(`              STORAGE=AUTO,`, true);
                 bms += formatBMSLine(`              TERM=3270,`, true);
@@ -5865,7 +5863,7 @@
                 bms += formatBMSLine(`              TYPE=&&SYSPARM,`, true);
                 
                 // DFHMDI
-                bms += formatBMSLine(`${mapSetName.substring(0,6).padEnd(6)}  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1`);
+                bms += formatBMSLine(`${mapSetName.padEnd(6)} DFHMDI SIZE=(24,80),LINE=1,COLUMN=1`);
                 bms += `*      Screen: ${screen.name}\n`;
                 bms += `*\n`;
                 
@@ -6050,14 +6048,13 @@
                         const attrb = getBMSAttrString(field);
                         
                         // campo: sem comentário gerado pelo sistema
-                        const _en = element.name.substring(0, 6);
-                        bms += formatBMSLine(`${_en.padEnd(6)}  DFHMDF POS=(${element.row + 1},${element.col + 1}),`, true);
+                        bms += formatBMSLine(`${element.name.padEnd(6)} DFHMDF POS=(${element.row + 1},${element.col + 1}),`, true);
                         bms += formatBMSLine(`              LENGTH=${field.length},`, true);
                         bms += formatBMSLine(`              ATTRB=${attrb}`);
                         
                         // Byte de atributo DEPOIS do campo (auto-skip)
                         const afterCol = element.col + field.length + 1;
-                        bms += formatBMSLine(`        DFHMDF POS=(${element.row + 1},${afterCol}),`, true);
+                        bms += formatBMSLine(`       DFHMDF POS=(${element.row + 1},${afterCol}),`, true);
                         bms += formatBMSLine(`              LENGTH=0,`, true);
                         bms += formatBMSLine(`              ATTRB=ASKIP`);
                         
@@ -6066,8 +6063,8 @@
                     }
                 });
                 
-                bms += formatBMSLine(`        DFHMSD TYPE=FINAL`);
-                bms += formatBMSLine(`        END`);
+                bms += formatBMSLine(`       DFHMSD TYPE=FINAL`);
+                bms += formatBMSLine(`       END`);
                 bms += `\n`;
             });
             
@@ -6814,20 +6811,20 @@
             if (screen._bmsHeader) {
                 // Substituir o nome no DFHMDI pelo nome atual da tela
                 var hdr = screen._bmsHeader;
-                hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.substring(0,6).padEnd(6) + '  DFHMDI');
+                hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.padEnd(6) + '$2');
                 return hdr + '\n';
             }
             // Caso contrário, gerar header neutro
             var mapSetName = mapName + 'M';
             var h = '';
-            h += fmt(mapName.substring(0,6).padEnd(6) + '  DFHMSD LANG=COBOL,', true);
+            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
             h += fmt('              MODE=INOUT,', true);
             h += fmt('              STORAGE=AUTO,', true);
             h += fmt('              TERM=3270,', true);
             h += fmt('              TIOAPFX=YES,', true);
             h += fmt('              TYPE=&SYSPARM');
             h += '\n';
-            h += fmt(mapSetName.substring(0,6).padEnd(6) + '  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+            h += fmt(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
             h += '*\n';
             return h;
         }
@@ -6862,7 +6859,7 @@
 
                     while (maxTextLength > 0 && !foundFit) {
                         var testChunk = remainingText.substring(0, maxTextLength);
-                        var posLine    = '        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),';
+                        var posLine    = '       DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),';
                         var lengthLine = '              LENGTH=' + testChunk.length + ',';
                         var attrbLine  = '              ATTRB=(ASKIP,NORM),';
                         var initLine   = "              INITIAL='" + testChunk + "'";
@@ -6888,13 +6885,13 @@
                         .replace(/[║│┃╎╏┆┇┊┋]/g, '|')
                         .replace(/[╔╗╚╝╠╣╦╩╬┌┐└┘├┤┬┴┼]/g, '+')
                         .replace(/[^\x20-\x7E]/g, ' ');
-                    result += formatBMSLine('        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
+                    result += formatBMSLine('       DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
                     result += formatBMSLine('              LENGTH=' + actualLength + ',', true);
                     result += formatBMSLine('              ATTRB=(ASKIP,NORM),', true);
                     result += formatBMSLine("              INITIAL='" + safeChunk + "'");
 
                     remainingText = remainingText.substring(chunk.length).replace(/^\s+/, '');
-                    currentCol += actualLength + 1;
+                    currentCol += actualLength;
                 }
                 return result;
             }
@@ -6928,14 +6925,14 @@
                 bms += '* Tela: ' + screen.name + '\n';
                 bms += '* ========================================\n\n';
 
-                bms += formatBMSLine(mapName.substring(0,6).padEnd(6) + '  DFHMSD LANG=COBOL,', true);
+                bms += formatBMSLine(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
                 bms += formatBMSLine('              MODE=INOUT,', true);
                 bms += formatBMSLine('              STORAGE=AUTO,', true);
                 bms += formatBMSLine('              TERM=3270,', true);
                 bms += formatBMSLine('              TIOAPFX=YES,', true);
                 bms += formatBMSLine('              TYPE=&SYSPARM');
                 bms += '\n';
-                bms += formatBMSLine(mapSetName.substring(0,6).padEnd(6) + '  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+                bms += formatBMSLine(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
                 bms += '*\n';
             }
 
@@ -7024,13 +7021,12 @@
                     if (!screen.bmsImported) {
                         bms += '*      Campo: ' + (field.label || element.name) + '\n';
                     }
-                    var _n1 = element.name.substring(0, 6);
-                    bms += formatBMSLine(_n1.padEnd(6) + '  DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
+                    bms += formatBMSLine(element.name.padEnd(6) + ' DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
                     bms += formatBMSLine('              LENGTH=' + fieldBMSLength + ',', true);
                     bms += formatBMSLine('              ATTRB=' + attrb);
                     // Só emitir trailing DFHMDF se couber dentro das 80 colunas
                     if (afterCol <= 80) {
-                        bms += formatBMSLine('        DFHMDF POS=(' + (element.row + 1) + ',' + afterCol + '),', true);
+                        bms += formatBMSLine('       DFHMDF POS=(' + (element.row + 1) + ',' + afterCol + '),', true);
                         bms += formatBMSLine('              LENGTH=0,', true);
                         bms += formatBMSLine('              ATTRB=ASKIP');
                     }
@@ -7044,8 +7040,8 @@
             });
 
             bms += '\n';
-            bms += formatBMSLine('        DFHMSD TYPE=FINAL');
-            bms += formatBMSLine('        END');
+            bms += formatBMSLine('       DFHMSD TYPE=FINAL');
+            bms += formatBMSLine('       END');
             return bms;
         }
 
