@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CICS COBOL Editor - Terminal Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ═══════════════ IDE RIBBON ═══════════════ -->
+    <div class="ide-ribbon">
+
+        <!-- Barra de título fina (estilo VS Code / IDE) -->
+        <div class="ide-ribbon-titlerow">
+            <div class="ide-ribbon-titlerow-left">
+                <button class="mobile-only ide-mobile-btn" onclick="toggleMobileSidebar()" title="Menu" aria-label="Menu lateral">
+                    <span style="font-size:15px;line-height:1;">☰</span>
+                </button>
+                <span class="ide-title-icon">🖥️</span>
+                <span class="ide-title-text">CICS COBOL Editor — Terminal Simulator</span>
+            </div>
+            <div class="ide-ribbon-titlerow-right">
+                <button class="mobile-only ide-mobile-btn ide-mobile-btn-code" onclick="toggleMobileCode()" title="Ver Código COBOL/BMS">
+                    <span style="font-size:13px;line-height:1;">📑</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Faixa de botões ribbon (grupos com ícone + label + nome do grupo) -->
+        <div class="ide-ribbon-bar ide-titlebar-actions">
+
+            <!-- ── Grupo 1: Telas ── -->
+            <div class="ribbon-group">
+                <div class="ribbon-group-btns">
+                    <button class="ribbon-btn" onclick="openFileModal()" title="Carregar arquivos TXT/BMS">
+                        <span class="ribbon-btn-icon">📂</span>
+                        <span class="ribbon-btn-label">Carregar</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openNewScreenModal()" title="Criar nova tela em branco">
+                        <span class="ribbon-btn-icon">➕</span>
+                        <span class="ribbon-btn-label">Nova Tela</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="loadExampleScreen()" title="Carregar tela de demonstração">
+                        <span class="ribbon-btn-icon">▶️</span>
+                        <span class="ribbon-btn-label">Demo</span>
+                    </button>
+                    <button class="ribbon-btn ribbon-btn-danger" onclick="clearAllScreens()" title="Limpar todas as telas">
+                        <span class="ribbon-btn-icon">🗑️</span>
+                        <span class="ribbon-btn-label">Limpar</span>
+                    </button>
+                </div>
+                <div class="ribbon-group-name">Telas</div>
+            </div>
+            <div class="ribbon-sep"></div>
+
+            <!-- ── Grupo 2: Exportar / Importar ── -->
+            <div class="ribbon-group">
+                <div class="ribbon-group-btns">
+                    <button class="ribbon-btn ribbon-btn-save" onclick="saveProject()" title="Salvar projeto atual (.cics)">
+                        <span class="ribbon-btn-icon">💾</span>
+                        <span class="ribbon-btn-label">Salvar</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openExportModal()" title="Exportar regras de navegação">
+                        <span class="ribbon-btn-icon">📤</span>
+                        <span class="ribbon-btn-label">Exportar</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openImportModal()" title="Importar regras de navegação">
+                        <span class="ribbon-btn-icon">📥</span>
+                        <span class="ribbon-btn-label">Importar</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openValidationExportModal()" title="Exportar validações e variáveis BMS">
+                        <span class="ribbon-btn-icon">📦</span>
+                        <span class="ribbon-btn-label">Exp.&nbsp;Val.</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openConfigPanel()" title="Configurações do projeto">
+                        <span class="ribbon-btn-icon">⚙️</span>
+                        <span class="ribbon-btn-label">Config.</span>
+                    </button>
+                </div>
+                <div class="ribbon-group-name">Exportar / Importar</div>
+            </div>
+            <div class="ribbon-sep"></div>
+
+            <!-- ── Grupo 3: Navegação e Campos ── -->
+            <div class="ribbon-group">
+                <div class="ribbon-group-btns">
+                    <button class="ribbon-btn" onclick="openNavPanel()" title="Painel de regras de navegação">
+                        <span class="ribbon-btn-icon">🔀</span>
+                        <span class="ribbon-btn-label">Navegação</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="openCamposPanel()" title="Painel de campos e validações">
+                        <span class="ribbon-btn-icon">🔤</span>
+                        <span class="ribbon-btn-label">Campos</span>
+                    </button>
+                </div>
+                <div class="ribbon-group-name">Painéis</div>
+            </div>
+            <div class="ribbon-sep"></div>
+
+            <!-- ── Visual ── -->
+            <div class="ribbon-group">
+                <div class="ribbon-group-btns">
+                    <button class="ribbon-btn ribbon-btn-tour" onclick="startTour()" title="Tour interativo — conheça cada funcionalidade">
+                        <span class="ribbon-btn-icon">🎯</span>
+                        <span class="ribbon-btn-label">Tour</span>
+                    </button>
+                    <button class="ribbon-btn ribbon-btn-help" onclick="showHelp()" title="Manual do Simulador">
+                        <span class="ribbon-btn-icon">❓</span>
+                        <span class="ribbon-btn-label">Ajuda</span>
+                    </button>
+                    <button class="ribbon-btn" onclick="toggleTheme()" title="Alternar tema claro / escuro">
+                        <span class="ribbon-btn-icon">🌓</span>
+                        <span class="ribbon-btn-label">Tema</span>
+                    </button>
+                </div>
+                <div class="ribbon-group-name">Visual</div>
+            </div>
+
+        </div><!-- /ide-ribbon-bar -->
+    </div><!-- /ide-ribbon -->
+
+    <!-- Mobile overlay -->
+    <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileDrawers()"></div>
+
+    <!-- ═══════════════ IDE BODY ═══════════════ -->
+    <div class="ide-body">
+
+        <!-- ─── LEFT SIDEBAR ─── -->
+        <div class="ide-sidebar">
+
+            <!-- Cabeçalho com mini-abas: Projeto / Atividade / Custom -->
+            <div class="sidebar-panel-header">
+                <div class="sidebar-panel-tabs">
+                    <button class="sidebar-panel-tab active" onclick="switchSidebarSection('projeto')">Projeto</button>
+                    <button class="sidebar-panel-tab" onclick="switchSidebarSection('atividade')">Atividade</button>
+                    <button class="sidebar-panel-tab" onclick="switchSidebarSection('custom')">PF'S</button>
+                </div>
+            </div>
+
+            <!-- Seção: Projeto (telas carregadas) -->
+            <div id="section-projeto" class="sidebar-section-panel active">
+            <div id="tab-telas" class="sidebar-tab-panel active">
+                <div class="sidebar-section-label">TELAS CARREGADAS</div>
+                <div class="screens-container" id="screensContainer">
+                    <div class="sidebar-empty-msg">Nenhuma tela</div>
+                </div>
+                <!-- screenCount hidden span for JS compatibility -->
+                <span id="screenCount" style="display:none">0 telas</span>
+            </div>
+
+            </div><!-- /section-projeto -->
+
+            <!-- Seção: Atividade -->
+            <div id="section-atividade" class="sidebar-section-panel">
+                <div class="sidebar-section-label" style="margin-top:12px;">ATIVIDADE</div>
+                <div class="sidebar-empty-msg" style="padding:20px 12px;">Em breve</div>
+            </div>
+
+            <!-- Seção: Custom -->
+            <div id="section-custom" class="sidebar-section-panel">
+                <div class="sidebar-section-label" style="margin-top:12px;">TECLAS DE FUNÇÃO</div>
+                <div class="sidebar-pf-grid">
+                    <div class="sidebar-pf-key function-key" data-key="PF1"><span class="pf-num">PF1</span><span class="pf-desc">HELP</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF2"><span class="pf-num">PF2</span><span class="pf-desc">SPLIT</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF3"><span class="pf-num">PF3</span><span class="pf-desc">EXIT</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF4"><span class="pf-num">PF4</span><span class="pf-desc">RETURN</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF5"><span class="pf-num">PF5</span><span class="pf-desc">RFIND</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF6"><span class="pf-num">PF6</span><span class="pf-desc">RCHANGE</span></div>
+                    <div class="sidebar-pf-key function-key nav-key" data-key="PF7"><span class="pf-num">PF7</span><span class="pf-desc">⬆ PREV</span></div>
+                    <div class="sidebar-pf-key function-key nav-key" data-key="PF8"><span class="pf-num">PF8</span><span class="pf-desc">⬇ NEXT</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF9"><span class="pf-num">PF9</span><span class="pf-desc">SWAP</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF10"><span class="pf-num">PF10</span><span class="pf-desc">LEFT</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF11"><span class="pf-num">PF11</span><span class="pf-desc">RIGHT</span></div>
+                    <div class="sidebar-pf-key function-key" data-key="PF12"><span class="pf-num">PF12</span><span class="pf-desc">CANCEL</span></div>
+                    <div class="sidebar-pf-key function-key sidebar-pf-enter" data-key="ENTER"><span class="pf-num">↵</span><span class="pf-desc">ENTER</span></div>
+                </div>
+            </div>
+
+            <!-- Elementos ocultos mantidos para compatibilidade com JS (tour/switchSidebarTab) -->
+            <span id="rulesCount" style="display:none">0 regras</span>
+            <button id="toggleValidationBtn" style="display:none;">Expandir</button>
+        </div>
+
+        <!-- ─── RESIZE HANDLE: sidebar ↔ terminal ─── -->
+        <div class="resize-handle" id="resizeLeft"></div>
+
+        <!-- ─── CENTER: TERMINAL ─── -->
+        <div class="ide-terminal-panel">
+
+            <div class="ide-panel-header">
+                <span class="ide-panel-icon">⚙</span>
+                <span class="ide-panel-label">Terminal CICS 3270</span>
+                <span class="terminal-grid-badge">24 × 80</span>
+                <div class="ide-panel-info">
+                    <span>TELA: </span><span id="currentScreenName">NENHUMA TELA</span>
+                    <span id="fieldsCountDisplay" style="display:none;"> | <span id="fieldsCountNum">0</span> CAMPOS</span>
+                    <div class="ide-status-dot" id="ideStatusDot"></div>
+                </div>
+                <button id="btnEditScreen" class="btn-edit-screen" onclick="toggleScreenEditor()" title="Editar layout da tela — altera BMS e COBOL ao fechar">
+                    <span id="btnEditScreenIcon">✏️</span><span id="btnEditScreenLabel"> Editar</span>
+                </button>
+            </div>
+
+            <!-- barra de controles mobile: Tab / Limpar -->
+            <div class="mobile-field-bar mobile-only">
+                <span class="mobile-field-label" id="mobileFieldLabel">Toque num campo</span>
+                <div style="display:flex;gap:5px;margin-left:auto;">
+                    <button class="mobile-field-btn" onclick="mobilePrevField()" title="Campo anterior">⇤ Ant</button>
+                    <button class="mobile-field-btn" onclick="mobileNextField()" title="Próximo campo">Tab ⇥</button>
+                    <button class="mobile-field-btn" onclick="mobileClearField()" title="Limpar campo">⌫ Limpar</button>
+                </div>
+            </div>
+
+            <div class="ide-terminal-viewport" id="terminalViewport">
+                <div class="terminal-wrap" id="terminalWrap">
+                    <!-- Editor de layout — DENTRO do terminalWrap para herdar o transform:scale do JS -->
+                    <div class="screen-editor-overlay" id="screenEditorOverlay">
+                        <div class="screen-editor-hint">
+                            ✏️ <strong>Edição</strong>&nbsp;
+                            <code>x</code>=num &nbsp;<code>z</code>=alfa
+                            &nbsp;|&nbsp; 24 lin × 80 col
+                        </div>
+                        <textarea class="screen-editor-textarea" id="screenEditorTextArea"
+                                  spellcheck="false" autocomplete="off"
+                                  autocorrect="off" autocapitalize="off"></textarea>
+                        <div class="screen-editor-status" id="screenEditorStatus">LN: 1   COL: 1</div>
+                    </div>
+                    <div class="terminal-screen" id="terminal">
+                        <div class="cursor" id="cursor"></div>
+                    </div>
+
+                    <div class="status-bar">
+                        <div class="status-item">
+                            <span id="cursorPos">01/01</span>
+                            <span id="fieldInfo">READY</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="screen-counter">
+                                Tela <span id="currentScreenIndex">0</span> de <span id="totalScreens">0</span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span id="time"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- input oculto só para capturar teclado virtual no mobile -->
+            <input id="mobileTerminalInput"
+                   type="text"
+                   autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+                   style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0;pointer-events:none;">
+
+        </div>
+
+        <!-- ─── RESIZE HANDLE: terminal ↔ code panel ─── -->
+        <div class="resize-handle" id="resizeRight"></div>
+
+        <!-- ─── RIGHT: CODE PANEL ─── -->
+        <div class="ide-code-panel">
+            <div class="ide-panel-header" style="flex-wrap:wrap;gap:2px;">
+                <span class="ide-panel-icon">🗒</span>
+                <!-- Main tabs: Propriedade / View Code -->
+                <button id="tabProp" onclick="switchMainTab('propriedade')" class="code-tab code-tab-inactive">Propriedade</button>
+                <button id="tabViewCode" onclick="switchMainTab('viewcode')" class="code-tab code-tab-active">View Code</button>
+                <!-- Badge -->
+                <span id="cobolUpdateBadge" class="code-tab-badge badge-cics-empty">0 regra(s)</span>
+            </div>
+            <!-- Sub-tabs View Code: CICS/COBOL / BMS MAP -->
+            <div id="viewCodeSubTabs" class="code-subtabs-bar">
+                <button id="tabCics" onclick="switchCodeTab('cics')" class="code-tab code-tab-active">CICS/COBOL</button>
+                <button id="tabBms"  onclick="switchCodeTab('bms')"  class="code-tab code-tab-inactive">BMS MAP</button>
+            </div>
+            <!-- Outline nav — barra de navegação rápida por divisão/seção -->
+            <div id="cobolOutlineWrap" class="code-outline-wrap" style="display:none;">
+                <select id="cobolOutlineNav" onchange="jumpToOutlineSection(this.value)"
+                    title="Ir para divisão/seção"></select>
+            </div>
+            <!-- Painel Propriedade -->
+            <div id="propPanel" class="prop-panel" style="display:none;"></div>
+            <pre class="ide-code-viewer" id="cobolCodeOutput"><span class="cc-comment">      * ============================</span>
+<span class="cc-comment">      * Carregue uma tela para</span>
+<span class="cc-comment">      * ver o código gerado</span>
+<span class="cc-comment">      * ============================</span></pre>
+        </div>
+
+    </div><!-- /ide-body -->
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="ide-footer">
+        <span class="ide-footer-by">© <span id="footerYear"></span> <strong>Elaine Nunes</strong>&#8482;</span>
+        <a class="ide-footer-linkedin"
+           href="https://www.linkedin.com/in/elainemirellanunes/"
+           target="_blank"
+           rel="noopener noreferrer"
+           title="LinkedIn de Elaine Mirella Nunes">
+            <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20.447 20.452H17.21v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.987V9h3.102v1.561h.046c.431-.816 1.484-1.676 3.054-1.676 3.267 0 3.868 2.149 3.868 4.944v6.623zM5.337 7.433a1.8 1.8 0 1 1 0-3.601 1.8 1.8 0 0 1 0 3.601zm1.554 13.019H3.782V9h3.109v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.226.792 24 1.771 24h20.451C23.2 24 24 23.226 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            </svg>
+            LinkedIn
+        </a>
+    </footer>
+
+    <!-- Modal Nova Tela em Branco -->
+    <div class="modal-overlay" id="newScreenModalOverlay">
+        <div class="modal" style="max-width:380px">
+            <div class="modal-header">
+                <div class="modal-title">🖥️ Nova Tela em Branco</div>
+                <button class="modal-close" onclick="closeNewScreenModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <label style="display:block;font-size:12px;margin-bottom:6px;color:var(--ide-text-muted)">Nome da tela (máx. 8 caracteres):</label>
+                <input id="newScreenNameInput" type="text" maxlength="8"
+                    style="width:100%;box-sizing:border-box;background:var(--ide-input-bg);color:var(--ide-text);border:1px solid var(--ide-border);border-radius:3px;padding:7px 10px;font-family:inherit;font-size:13px;outline:none;"
+                    placeholder="Ex: MENU, CAD01"
+                    onkeydown="event.stopPropagation();if(event.key==='Enter')createBlankScreen()" />
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeNewScreenModal()">Cancelar</button>
+                <button class="modal-btn primary" onclick="createBlankScreen()">Criar Tela</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Carregamento de Arquivos -->
+    <div class="modal-overlay" id="fileModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📂 Carregar Arquivos de Tela</div>
+                <button class="modal-close" onclick="closeFileModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="file-drop-zone" id="dropZone" onclick="selectFiles()">
+                    <div class="file-drop-icon">📁</div>
+                    <div>Clique para selecionar ou arraste arquivos TXT/BMS aqui</div>
+                    <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
+                        Formatos aceitos: .txt e .bms — múltiplos arquivos
+                    </div>
+                </div>
+                
+                <div class="file-list" id="fileList">
+                    <!-- Lista de arquivos será mostrada aqui -->
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeFileModal()">Cancelar</button>
+                <button class="modal-btn primary" onclick="loadSelectedFiles()">Carregar Telas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagens de Status -->
+    <div class="status-message" id="statusMessage"></div>
+    
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-text">PROCESSING...</div>
+    </div>
+
+    <!-- Modal de Exportação -->
+    <div class="modal-overlay" id="exportModalOverlay">
+        <div class="modal export-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📤 Exportar Regras de Navegação</h2>
+                <button class="close-btn modal-close" onclick="closeExportModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description">
+                    Escolha o formato de exportação para usar as regras no seu programa CICS:
+                </p>
+                
+                <div class="export-options">
+                    <button class="export-option-btn" onclick="exportAsJSON()">
+                        <div class="export-icon">📄</div>
+                        <div class="export-title">JSON</div>
+                        <div class="export-desc">Formato estruturado, fácil de importar</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsCobol()">
+                        <div class="export-icon">📝</div>
+                        <div class="export-title">COBOL</div>
+                        <div class="export-desc">Código COBOL com EVALUATE statements</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsTable()">
+                        <div class="export-icon">📊</div>
+                        <div class="export-title">Tabela SQL</div>
+                        <div class="export-desc">INSERT statements para banco de dados</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsExcel()">
+                        <div class="export-icon">📗</div>
+                        <div class="export-title">Excel (XLSX)</div>
+                        <div class="export-desc">Planilha formatada com fórmulas</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsCSV()">
+                        <div class="export-icon">📋</div>
+                        <div class="export-title">CSV</div>
+                        <div class="export-desc">Compatível com qualquer planilha</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsXML()">
+                        <div class="export-icon">🗂️</div>
+                        <div class="export-title">XML</div>
+                        <div class="export-desc">Formato XML para integração</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportAsDocumentation()">
+                        <div class="export-icon">📖</div>
+                        <div class="export-title">Documentação</div>
+                        <div class="export-desc">HTML formatado para leitura</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Importação -->
+    <div class="modal-overlay" id="importModalOverlay">
+        <div class="modal export-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📥 Importar Regras de Navegação</h2>
+                <button class="close-btn modal-close" onclick="closeImportModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description">
+                    Carregue um arquivo com regras de navegação. O sistema tentará associar automaticamente às telas carregadas.
+                </p>
+                
+                <div class="import-info">
+                    <strong class="info-title">ℹ️ Informações importantes:</strong>
+                    <ul class="info-list">
+                        <li>Carregue suas telas ANTES de importar as regras</li>
+                        <li>O sistema tentará encontrar telas pelo nome</li>
+                        <li>Se uma tela não for encontrada, você poderá associá-la manualmente</li>
+                        <li>Formatos aceitos: JSON, CSV, Excel (.xls)</li>
+                    </ul>
+                </div>
+
+                <div class="import-drop-zone" id="importDropZone" onclick="selectImportFile()">
+                    <div class="file-drop-icon">📁</div>
+                    <div>Clique para selecionar arquivo ou arraste aqui</div>
+                    <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
+                        JSON, CSV ou Excel (.xls)
+                    </div>
+                </div>
+
+                <div id="importPreview" style="display: none; margin-top: 20px;">
+                    <h3 class="preview-title">📋 Pré-visualização</h3>
+                    <div id="importPreviewContent" class="import-preview-content">
+                        <!-- Preview das regras aqui -->
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="modal-btn" onclick="closeImportModal()">Cancelar</button>
+                        <button class="modal-btn primary" onclick="confirmImport()">✅ Importar Regras</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Exportação de Validações -->
+    <div class="modal-overlay" id="validationExportModalOverlay">
+        <div class="modal export-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📤 Exportar Configurações de Validação</h2>
+                <button class="close-btn modal-close" onclick="closeValidationExportModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description">
+                    Escolha o formato de exportação para as validações e variáveis BMS:
+                </p>
+                
+                <div class="export-options">
+                    <button class="export-option-btn" onclick="exportValidationsAsJSON()">
+                        <div class="export-icon">📄</div>
+                        <div class="export-title">JSON</div>
+                        <div class="export-desc">Todas as configurações em formato JSON</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportValidationsAsCobol()">
+                        <div class="export-icon">💻</div>
+                        <div class="export-title">COBOL</div>
+                        <div class="export-desc">Programa com lógica de validação</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportValidationsAsExcel()">
+                        <div class="export-icon">📗</div>
+                        <div class="export-title">Excel (XLSX)</div>
+                        <div class="export-desc">Planilha com campos e validações</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportValidationsAsCSV()">
+                        <div class="export-icon">📋</div>
+                        <div class="export-title">CSV</div>
+                        <div class="export-desc">Lista de campos e validações</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="openBMSExportOptions()">
+                        <div class="export-icon">📝</div>
+                        <div class="export-title">BMS</div>
+                        <div class="export-desc">Definição de campos para BMS</div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportValidationsAsCopybook()">
+                        <div class="export-icon">📄</div>
+                        <div class="export-title">Copybook</div>
+                        <div class="export-desc">Copybook COBOL com campos BMS</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Opções BMS -->
+    <div class="modal-overlay" id="bmsOptionsModalOverlay">
+        <div class="modal export-modal" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📝 Opções de Exportação BMS</h2>
+                <button class="close-btn modal-close" onclick="closeBMSOptionsModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description" style="margin-bottom: 10px; font-weight: 600;">
+                    Escopo da exportação:
+                </p>
+                <div style="display:flex;gap:24px;margin-bottom:10px;padding:10px 14px;background:#f5f5f5;border-radius:6px;border:1px solid #ccc;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:#222;">
+                        <input type="radio" name="bmsExportScope" value="current" id="bmsExportScopeCurrent" checked
+                               onchange="bmsExportScopeChanged()">
+                        <span>Apenas este mapa</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:#222;">
+                        <input type="radio" name="bmsExportScope" value="all" id="bmsExportScopeAll"
+                               onchange="bmsExportScopeChanged()">
+                        <span id="bmsExportScopeAllText">Todos os mapas</span>
+                    </label>
+                </div>
+
+                <!-- Checklist de mapas — visível só quando "Todos os mapas" está selecionado -->
+                <div id="bmsExportMapList" style="display:none;margin-bottom:16px;padding:10px 14px;background:#f9f9f9;border:1px solid #ccc;border-radius:6px;max-height:180px;overflow-y:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;font-weight:600;color:#333;">Selecione os mapas:</span>
+                        <span style="font-size:12px;">
+                            <a href="#" onclick="bmsExportCheckAll(true);return false;" style="color:#0078d4;margin-right:10px;">Todos</a>
+                            <a href="#" onclick="bmsExportCheckAll(false);return false;" style="color:#0078d4;">Nenhum</a>
+                        </span>
+                    </div>
+                    <div id="bmsExportMapItems" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <p class="modal-description" style="margin-bottom: 15px;">
+                    Como deseja exportar os textos fixos (labels)?
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button class="export-option-btn" onclick="exportBMSWithOptions(true)" style="text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="export-icon">✅</div>
+                            <div>
+                                <div class="export-title">COM Variáveis</div>
+                                <div class="export-desc">Cria DFHMDF com nome para cada label (LBL0, LBL1…)</div>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button class="export-option-btn" onclick="exportBMSWithOptions(false)" style="text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="export-icon">💬</div>
+                            <div>
+                                <div class="export-title">SEM Variáveis</div>
+                                <div class="export-desc">Labels embutidos no DFHMDF sem nome de variável</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Associação Manual -->
+    <div class="modal-overlay" id="mappingModalOverlay">
+        <div class="modal export-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🔗 Associar Telas às Regras</h2>
+                <button class="close-btn modal-close" onclick="closeMappingModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--text-medium);">
+                    Algumas regras não puderam ser associadas automaticamente. Selecione manualmente as telas correspondentes:
+                </p>
+                
+                <div id="mappingList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Lista de associações aqui -->
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="modal-btn" onclick="closeMappingModal()">Cancelar</button>
+                    <button class="modal-btn primary" onclick="saveMappings()">💾 Salvar Associações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input de arquivo oculto -->
+    <input type="file" id="fileInput" style="display: none;" accept=".txt,.bms" multiple>
+    <input type="file" id="importFileInput" style="display: none;" accept=".json,.csv,.xls,.xlsx">
+
+    <!-- Modal de Ajuda/Tutorial -->
+    <div class="modal-overlay" id="helpModalOverlay">
+        <div class="modal help-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📖 Manual do Simulador CICS 3270</h2>
+                <button class="close-btn modal-close" onclick="closeHelp()">✕</button>
+            </div>
+            
+            <div class="modal-body help-body">
+                <div class="help-section">
+                    <h3 class="help-section-title">🎯 Visão Geral</h3>
+                    <p>Este simulador permite testar telas CICS 3270 com navegação, validação de campos e exportação de definições BMS.</p>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">📂 1. Carregando Telas</h3>
+                    <div class="help-content">
+                        <p><strong>Formatos Suportados:</strong></p>
+                        <ul>
+                            <li><strong>TXT (3270):</strong> Arquivos de texto com layout 24x80
+                                <ul>
+                                    <li>Use <code>x</code> para campos numéricos</li>
+                                    <li>Use <code>z</code> para campos alfanuméricos</li>
+                                    <li>Exemplo: <code>NOME: zzzzzzzzz</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>BMS:</strong> Arquivos com DFHMSD, DFHMDI e DFHMDF</li>
+                        </ul>
+                        
+                        <p><strong>Como Carregar:</strong></p>
+                        <ol>
+                            <li>Clique em "Carregar Telas TXT"</li>
+                            <li>Selecione um ou mais arquivos</li>
+                            <li>Clique em "Carregar Telas"</li>
+                        </ol>
+                        
+                        <div class="help-tip">
+                            💡 <strong>Dica:</strong> Você pode arrastar e soltar arquivos diretamente na área de upload!
+                        </div>
+
+                        <p style="margin-top:14px;"><strong>Exemplo de arquivo TXT:</strong>
+                            <span style="font-size:10px;color:var(--ide-text-dim);margin-left:6px;">Copie, salve como <code>.txt</code> e importe no simulador</span>
+                        </p>
+                        <div style="position:relative;">
+                            <button onclick="copyExampleTxt(this)" title="Copiar conteúdo" style="
+                                position:absolute;top:8px;right:8px;
+                                background:#2a2a2d;border:1px solid var(--ide-border);
+                                color:var(--ide-text-dim);font-family:inherit;font-size:10px;
+                                padding:3px 10px;border-radius:4px;cursor:pointer;
+                                transition:all .15s;z-index:1;">
+                                📋 Copiar
+                            </button>
+                            <pre id="exampleTxtContent" class="code-example help-screen-example">================================================================================
+                      *** SISTEMA DE CADASTRO DE CLIENTES ***                   
+                                                                                
+  DATA: xx/xx/xxxx                                    HORA: xx:xx:xx           
+                                                                                
+  OPCAO: [x]                                                                    
+                                                                                
+  1 - INCLUIR NOVO CLIENTE                                                      
+  2 - ALTERAR DADOS DO CLIENTE                                                  
+  3 - CONSULTAR CLIENTE                                                         
+  4 - EXCLUIR CLIENTE                                                           
+  5 - RELATORIOS                                                                
+  0 - SAIR DO SISTEMA                                                           
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+  MENSAGEM: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx         
+                                                                                
+================================================================================
+  PF1=AJUDA   PF3=SAIR   PF5=ATUALIZAR</pre>
+                        </div>
+                        <div class="help-tip" style="margin-top:6px;">
+                            📌 <strong>Como usar:</strong> Clique em <strong>Copiar</strong>, cole no Bloco de Notas, salve como <code>CADASTRO.txt</code> e depois clique em <strong>📂 Carregar Telas TXT</strong> no simulador.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">🔑 2. Detectando PF Keys</h3>
+                    <div class="help-content">
+                        <p>O sistema detecta automaticamente PF keys definidas nos arquivos:</p>
+                        
+                        <p><strong>Formato no TXT/BMS:</strong></p>
+                        <pre class="code-example">PF3=SAIR  PF5=LIMPAR  PF7/PF8=NAVEGAR  ENTER=CONFIRMAR</pre>
+                        
+                        <p><strong>Onde colocar:</strong></p>
+                        <ul>
+                            <li><strong>TXT:</strong> Em qualquer linha do arquivo</li>
+                            <li><strong>BMS:</strong> No atributo INITIAL de um DFHMDF</li>
+                        </ul>
+                        
+                        <div class="help-tip">
+                            🔵 <strong>Visual:</strong> PF keys detectadas aparecem com borda azul na tela
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">🔄 3. Navegação entre Telas</h3>
+                    <div class="help-content">
+                        <p><strong>Criação Automática:</strong></p>
+                        <ul>
+                            <li>Ao carregar telas, regras são criadas automaticamente para PF keys detectadas</li>
+                            <li>Você precisa apenas selecionar a tela de destino</li>
+                        </ul>
+                        
+                        <p><strong>Criação Manual:</strong></p>
+                        <ol>
+                            <li>Clique em "Adicionar Regra de Navegação"</li>
+                            <li>Selecione tela de origem</li>
+                            <li>Escolha a tecla (PF1-PF12, ENTER)</li>
+                            <li>Selecione tela de destino ou ação</li>
+                        </ol>
+                        
+                        <p><strong>Tipos de Ação:</strong></p>
+                        <ul>
+                            <li><strong>🔀 Navegar:</strong> Vai para outra tela</li>
+                            <li><strong>💬 Mensagem:</strong> Exibe mensagem na linha 1</li>
+                        </ul>
+                        
+                        <div class="help-tip">
+                            🟢 <strong>Visual:</strong> Regras completas aparecem com borda verde
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">✅ 4. Validação de Campos</h3>
+                    <div class="help-content">
+                        <p><strong>Configurando Validações:</strong></p>
+                        <ol>
+                            <li>Expanda o painel "Configuração de Validação"</li>
+                            <li>Selecione um campo na lista</li>
+                            <li>Configure validações disponíveis:
+                                <ul>
+                                    <li>Campo Obrigatório</li>
+                                    <li>Tamanho Mínimo/Máximo</li>
+                                    <li>Não permitir zeros</li>
+                                    <li>Não permitir espaços</li>
+                                    <li>Padrões (email, CPF, telefone, etc.)</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        
+                        <p><strong>Teclas de Validação:</strong></p>
+                        <p>Marque quais teclas devem validar os campos antes de executar (padrão: ENTER)</p>
+                        
+                        <div class="help-tip">
+                            ⚠️ Se a validação falhar, a mensagem de erro aparece na linha 1 da tela
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">📤 5. Exportação</h3>
+                    <div class="help-content">
+                        <p><strong>Exportar Regras de Navegação:</strong></p>
+                        <ul>
+                            <li>JSON - Formato estruturado</li>
+                            <li>COBOL - Código com EVALUATE</li>
+                            <li>SQL - INSERT statements</li>
+                            <li>Excel/CSV - Planilhas</li>
+                            <li>XML - Integração</li>
+                            <li>HTML - Documentação</li>
+                        </ul>
+                        
+                        <p><strong>Exportar Validações:</strong></p>
+                        <ul>
+                            <li><strong>BMS:</strong> Definições DFHMDF completas
+                                <ul>
+                                    <li>COM variáveis: Cria labels nomeados</li>
+                                    <li>SEM variáveis: Labels como comentários</li>
+                                </ul>
+                            </li>
+                            <li><strong>COBOL:</strong> Programa com validações</li>
+                            <li><strong>Copybook:</strong> Definições de campos</li>
+                        </ul>
+                        
+                        <div class="help-tip">
+                            📝 <strong>BMS:</strong> Textos longos são automaticamente quebrados em múltiplos DFHMDF respeitando as 72 colunas do mainframe
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">⌨️ 6. Atalhos de Teclado</h3>
+                    <div class="help-content">
+                        <table class="shortcuts-table">
+                            <tr>
+                                <td><kbd>Tab</kbd></td>
+                                <td>Próximo campo</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Shift+Tab</kbd></td>
+                                <td>Campo anterior</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Enter</kbd></td>
+                                <td>Executar ENTER</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>F1</kbd> - <kbd>F12</kbd></td>
+                                <td>Teclas PF1-PF12</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Home</kbd></td>
+                                <td>Primeiro campo</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>End</kbd></td>
+                                <td>Último campo</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Esc</kbd></td>
+                                <td>Limpar campo atual</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">💡 7. Dicas e Truques</h3>
+                    <div class="help-content">
+                        <ul>
+                            <li>🎨 Use o botão <strong>🌓</strong> para alternar entre tema claro e escuro</li>
+                            <li>📥 Importe regras de navegação de projetos anteriores</li>
+                            <li>🔄 Você pode recarregar o mesmo arquivo TXT após modificá-lo</li>
+                            <li>🗑️ Clique no X vermelho para remover telas ou regras</li>
+                            <li>🎯 Campos obrigatórios são validados apenas se marcados</li>
+                            <li>📊 Exporte para Excel para compartilhar com a equipe</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3 class="help-section-title">❓ 8. Problemas Comuns</h3>
+                    <div class="help-content">
+                        <p><strong>PF keys não aparecem:</strong></p>
+                        <ul>
+                            <li>Verifique o formato: <code>PF3=SAIR</code></li>
+                            <li>Certifique-se de que está em uma linha do arquivo</li>
+                            <li>Confira o console do navegador (F12) para logs</li>
+                        </ul>
+                        
+                        <p><strong>Arquivo BMS não carrega:</strong></p>
+                        <ul>
+                            <li>Deve conter DFHMSD, DFHMDI ou DFHMDF</li>
+                            <li>Verifique a sintaxe do arquivo</li>
+                        </ul>
+                        
+                        <p><strong>Navegação não funciona:</strong></p>
+                        <ul>
+                            <li>Verifique se há regra criada para aquela tecla</li>
+                            <li>Certifique-se de que a tela de destino está selecionada</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-footer">
+                    <p>📧 Tem dúvidas? Abra o console do navegador (F12) para ver logs detalhados</p>
+                    <p style="margin-top: 10px; opacity: 0.7; font-size: 12px;">
+                        Simulador CICS 3270 Multi-Screen Terminal - Versão 2.0
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL PAINEL: NAVEGAÇÃO ═══ -->
+    <div class="modal-overlay panel-modal-overlay" id="navPanelOverlay" onclick="if(event.target===this)closeNavPanel()">
+        <div class="modal panel-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🔀 Regras de Navegação</h2>
+                <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+                    <button class="sidebar-mini-btn" onclick="openImportModal()" title="Importar">📥 Importar</button>
+                    <button class="sidebar-mini-btn" onclick="openExportModal()" title="Exportar">📤 Exportar</button>
+                    <button class="modal-close" onclick="closeNavPanel()">✕</button>
+                </div>
+            </div>
+            <div class="modal-body panel-modal-body">
+                <div class="sidebar-rules-bar" style="padding:4px 0 8px;">
+                    <span id="rulesCount" style="font-size:11px;color:#6a9955;">0 regras</span>
+                </div>
+                <div class="nav-mapping" id="navMapping" style="flex:1;overflow-y:auto;min-height:400px;max-height:65vh;">
+                    <div class="sidebar-empty-msg">Nenhuma regra</div>
+                </div>
+                <button class="add-nav-btn" style="margin-top:10px;" onclick="addNavigationRule()">Adicionar Regra de Navegação</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL PAINEL: CAMPOS ═══ -->
+    <div class="modal-overlay panel-modal-overlay" id="camposPanelOverlay" onclick="if(event.target===this)closeCamposPanel()">
+        <div class="modal panel-modal panel-modal-wide">
+            <div class="modal-header">
+                <h2 class="modal-title">🔤 Campos e Validações</h2>
+                <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+                    <button class="sidebar-mini-btn" onclick="event.stopPropagation();openValidationExportModal()">📤 Exportar</button>
+                    <button class="modal-close" onclick="closeCamposPanel()">✕</button>
+                </div>
+            </div>
+            <div class="modal-body panel-modal-body">
+                <!-- Barra modo foco (só aparece ao abrir por Propriedade) -->
+                <div class="campo-focus-bar" id="camposFocusBar">
+                    <button class="campo-focus-back-btn" onclick="openCamposPanel()">← Ver todos os campos</button>
+                    <span class="campo-focus-title" id="camposFocusTitle">Configuração do campo</span>
+                </div>
+                <div id="validationPanel">
+                    <div class="sidebar-section-label" style="margin-bottom:6px;">TECLAS QUE VALIDAM</div>
+                    <div class="validation-global-config sidebar-keys-wrap">
+                        <div class="validation-keys-grid sidebar-keys-grid">
+                            <label class="validation-key-item"><input type="checkbox" value="ENTER" onchange="updateValidationKeys()" checked><span class="key-name">ENTER</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF1" onchange="updateValidationKeys()"><span class="key-name">PF1</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF2" onchange="updateValidationKeys()"><span class="key-name">PF2</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF3" onchange="updateValidationKeys()"><span class="key-name">PF3</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF4" onchange="updateValidationKeys()"><span class="key-name">PF4</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF5" onchange="updateValidationKeys()"><span class="key-name">PF5</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF6" onchange="updateValidationKeys()"><span class="key-name">PF6</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF7" onchange="updateValidationKeys()"><span class="key-name">PF7</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF8" onchange="updateValidationKeys()"><span class="key-name">PF8</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF9" onchange="updateValidationKeys()"><span class="key-name">PF9</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF10" onchange="updateValidationKeys()"><span class="key-name">PF10</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF11" onchange="updateValidationKeys()"><span class="key-name">PF11</span></label>
+                            <label class="validation-key-item"><input type="checkbox" value="PF12" onchange="updateValidationKeys()"><span class="key-name">PF12</span></label>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section-label" style="margin:10px 0 6px;">CAMPOS DA TELA ATUAL</div>
+                    <div class="panel-campos-split">
+                        <div class="panel-campos-list">
+                            <div id="fieldsListContainer" class="fields-container">
+                                <div class="sidebar-empty-msg">Nenhuma tela carregada</div>
+                            </div>
+                        </div>
+                        <div class="panel-campos-config validation-config" id="validationConfig">
+                            <div id="fieldConfigContent">
+                                <div class="sidebar-empty-msg" style="padding:10px;">Selecione um campo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL PAINEL: CONFIGURAÇÃO ═══ -->
+    <div class="modal-overlay panel-modal-overlay" id="configPanelOverlay" onclick="if(event.target===this)closeConfigPanel()">
+        <div class="modal panel-modal" style="max-width:400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ Configurações</h2>
+                <button class="modal-close" onclick="closeConfigPanel()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="sidebar-section-label">TEMA</div>
+                <button class="config-card-btn" onclick="toggleTheme()">
+                    <span class="config-card-icon">🌓</span>
+                    <span class="config-card-text">
+                        <span class="config-card-title">Alternar Tema</span>
+                        <span class="config-card-desc">Claro / Escuro</span>
+                    </span>
+                </button>
+
+                <div class="sidebar-section-label" style="margin-top:12px;">EXPORTAR</div>
+                <button class="config-card-btn" onclick="openValidationExportModal()">
+                    <span class="config-card-icon">📦</span>
+                    <span class="config-card-text">
+                        <span class="config-card-title">BMS / COBOL / Copybook</span>
+                        <span class="config-card-desc">Exportar código e definições</span>
+                    </span>
+                </button>
+                <button class="config-card-btn" onclick="openExportModal()">
+                    <span class="config-card-icon">🗺</span>
+                    <span class="config-card-text">
+                        <span class="config-card-title">Regras de Navegação</span>
+                        <span class="config-card-desc">Exportar configuração JSON</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        /* ── Modais de painel (Nav / Campos / Config) ── */
+        function openNavPanel() {
+            document.getElementById('navPanelOverlay').style.display = 'flex';
+        }
+        function closeNavPanel() {
+            document.getElementById('navPanelOverlay').style.display = 'none';
+        }
+        function openCamposPanel() {
+            document.getElementById('camposPanelOverlay').style.display = 'flex';
+            var panel = document.getElementById('validationPanel');
+            if (panel) panel.classList.remove('campo-focus-mode');
+            var bar = document.getElementById('camposFocusBar');
+            if (bar) bar.classList.remove('visible');
+            if (typeof renderFieldsList === 'function' && app && app.currentScreenIndex >= 0) {
+                renderFieldsList();
+            }
+        }
+        function openCamposPanelWithField(index) {
+            document.getElementById('camposPanelOverlay').style.display = 'flex';
+            var panel = document.getElementById('validationPanel');
+            if (panel) panel.classList.add('campo-focus-mode');
+            var bar = document.getElementById('camposFocusBar');
+            if (bar) bar.classList.add('visible');
+            if (typeof selectFieldForValidation === 'function') {
+                selectFieldForValidation(index);
+                /* Atualizar título da barra com o nome do campo */
+                var title = document.getElementById('camposFocusTitle');
+                if (title && app && app.fields && app.fields[index]) {
+                    var f = app.fields[index];
+                    title.textContent = (f.label || ('Campo ' + (index + 1))) + ' — configuração';
+                }
+            }
+        }
+        function closeCamposPanel() {
+            document.getElementById('camposPanelOverlay').style.display = 'none';
+            var panel = document.getElementById('validationPanel');
+            if (panel) panel.classList.remove('campo-focus-mode');
+            var bar = document.getElementById('camposFocusBar');
+            if (bar) bar.classList.remove('visible');
+        }
+        function openConfigPanel() {
+            document.getElementById('configPanelOverlay').style.display = 'flex';
+        }
+        function closeConfigPanel() {
+            document.getElementById('configPanelOverlay').style.display = 'none';
+        }
+
+        /* ── Abas do sidebar (Projeto / Atividade / Custom) ── */
+        function switchSidebarSection(name) {
+            document.querySelectorAll('.sidebar-section-panel').forEach(function(el) {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.sidebar-panel-tab').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            var panel = document.getElementById('section-' + name);
+            if (panel) panel.classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        /* ── Redirecionar switchSidebarTab para modais quando chamado de outros lugares (app.js) ── */
+        (function() {
+            var _orig = window.switchSidebarTab;
+            window.switchSidebarTab = function(tabName) {
+                if (tabName === 'nav')    { openNavPanel();    return; }
+                if (tabName === 'campos') { openCamposPanel(); return; }
+                if (tabName === 'config') { openConfigPanel(); return; }
+                if (typeof _orig === 'function') _orig(tabName);
+            };
+        })();
+
+        /* ── Pull-to-refresh (mobile): puxa para baixo na ribbon → salva projeto ── */
+        (function() {
+            var THRESHOLD = 65;
+            var startY = 0;
+            var curDist = 0;
+            var pulling = false;
+            var ind = document.createElement('div');
+            ind.className = 'ptr-indicator';
+            ind.innerHTML = '<span class="ptr-arrow">↓</span><span class="ptr-spinner"></span><span class="ptr-text">Puxe para salvar</span>';
+            document.body.prepend(ind);
+
+            /* Escuta na ribbon (topo fixo), que sempre recebe o toque inicial no editor */
+            var ribbon = document.querySelector('.ide-ribbon') || document.body;
+
+            ribbon.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    startY = e.touches[0].clientY;
+                    curDist = 0;
+                    pulling = true;
+                }
+            }, { passive: true });
+
+            /* touchmove precisa estar no document para capturar após sair da ribbon */
+            document.addEventListener('touchmove', function(e) {
+                if (!pulling) return;
+                curDist = e.touches[0].clientY - startY;
+                if (curDist <= 0) {
+                    ind.classList.remove('ptr-visible', 'ptr-ready');
+                    return;
+                }
+                var ready = curDist >= THRESHOLD;
+                ind.classList.add('ptr-visible');
+                ind.classList.toggle('ptr-ready', ready);
+                ind.querySelector('.ptr-text').textContent =
+                    ready ? 'Solte para salvar' : 'Puxe para salvar';
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                if (!pulling) return;
+                pulling = false;
+                if (curDist < THRESHOLD) {
+                    ind.classList.remove('ptr-visible', 'ptr-ready');
+                    return;
+                }
+                ind.classList.add('ptr-loading');
+                ind.querySelector('.ptr-text').textContent = 'Salvando\u2026';
+                Promise.resolve(typeof saveProject === 'function' ? saveProject() : null)
+                    .finally(function() {
+                        setTimeout(function() {
+                            ind.classList.remove('ptr-visible', 'ptr-ready', 'ptr-loading');
+                        }, 900);
+                    });
+            }, { passive: true });
+        })();
+    </script>
+</body>
+</html>
