@@ -5638,15 +5638,25 @@
         }
 
         // Normaliza labels de um BMS: trunca nomes > 6 chars e garante mnemonic na col 9
+        // Preserva o char de continuação na col 72 do original (- ou espaço)
         function _normalizeBMSLabels(bmsText) {
             return bmsText.split('\n').map(function(line) {
+                // Preservar char de continuação em col 72 (índice 71)
+                var cont72 = line.length >= 72 ? line.charAt(71) : '';
+                var body   = line.length >= 72 ? line.substring(0, 71) : line;
+
                 // Linha COM label + mnemonic DFH: truncar label a 6 e garantir 2 espaços
-                var r = line.replace(/^([A-Z][A-Z0-9]{0,7})(\s+)(DFHM(?:SD|DI|DF)\b)/i, function(_, lbl, _sp, mnem) {
+                var r = body.replace(/^([A-Z][A-Z0-9]{0,7})(\s+)(DFHM(?:SD|DI|DF)\b)/i, function(_, lbl, _sp, mnem) {
                     return lbl.substring(0, 6).padEnd(6) + '  ' + mnem;
                 });
-                if (r !== line) return r;
-                // Linha SEM label: garantir exatamente 8 espaços antes do mnemonic (col 9)
-                return line.replace(/^\s+(DFHM(?:SD|DI|DF)\b)/i, '        $1');
+                if (r === body) {
+                    // Linha SEM label: garantir exatamente 8 espaços antes do mnemonic (col 9)
+                    r = body.replace(/^\s+(DFHM(?:SD|DI|DF)\b)/i, '        $1');
+                }
+
+                // Recolocar o char de continuação original na col 72
+                if (cont72 && cont72 !== ' ') return r.padEnd(71) + cont72;
+                return r;
             }).join('\n');
         }
 
@@ -5764,11 +5774,14 @@
             // Normalizar para transferência mainframe:
             // registro de 80 chars: cols 1-71 conteúdo, col 72 continuação, cols 73-80 sequência (brancos), CRLF
             bmsText = bmsText.split('\n').map(function(line) {
-                // Remover \r residual
-                line = line.replace(/\r$/, '');
+                // Remover \r residual e cols 73-80 (sequence field) do original
+                line = line.replace(/\r$/, '').substring(0, 80);
                 if (line.length === 0) return '';
-                // col 72 = '-' (continua) ou ' ' (fim)
+                // Preservar qualquer char de continuação que já esteja na col 72
                 var cont = line.length >= 72 ? line.charAt(71) : ' ';
+                // Se não era continuação válida e a linha termina com ',' é continuação
+                if (cont === ' ' && line.substring(0, 71).trimEnd().endsWith(',')) cont = '-';
+                // Garantir que col 72 só seja '-' ou ' '
                 if (cont !== '-') cont = ' ';
                 return line.substring(0, 71).padEnd(71) + cont + '        ';
             }).join('\r\n');
