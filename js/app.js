@@ -5761,19 +5761,30 @@
 
             var bmsText = _buildCleanBMSExport(screensToExport);
 
-            // Nome do arquivo
+            // Normalizar para transferência mainframe:
+            // registro de 80 chars: cols 1-71 conteúdo, col 72 continuação, cols 73-80 sequência (brancos), CRLF
+            bmsText = bmsText.split('\n').map(function(line) {
+                // Remover \r residual
+                line = line.replace(/\r$/, '');
+                if (line.length === 0) return '';
+                // col 72 = '-' (continua) ou ' ' (fim)
+                var cont = line.length >= 72 ? line.charAt(71) : ' ';
+                if (cont !== '-') cont = ' ';
+                return line.substring(0, 71).padEnd(71) + cont + '        ';
+            }).join('\r\n');
+
+            // Nome do arquivo — sempre .txt para compatibilidade de transferência
             var fileName;
             if (screensToExport.length > 1) {
-                // Tentar extrair nome do mapset do DFHMSD da primeira tela importada
                 var fi = screensToExport.find(function(s) { return s.bmsImported && s._bmsHeader; });
                 if (fi) {
                     var m = fi._bmsHeader.match(/^(\w+)\s+DFHMSD/im);
-                    fileName = (m ? m[1] : screensToExport[0].name.substring(0, 6)) + '.bms';
+                    fileName = (m ? m[1] : screensToExport[0].name.substring(0, 6)) + '.txt';
                 } else {
-                    fileName = screensToExport[0].name.substring(0, 6) + 'set.bms';
+                    fileName = screensToExport[0].name.substring(0, 6) + 'set.txt';
                 }
             } else {
-                fileName = screensToExport[0].name + '.bms';
+                fileName = screensToExport[0].name + '.txt';
             }
 
             downloadFile(bmsText, fileName, 'text/plain');
