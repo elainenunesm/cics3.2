@@ -5843,9 +5843,9 @@
                         
                         // Construir linha BMS completa para testar
                         const posLine = `${prefix} DFHMDF POS=(${row + 1},${currentCol + 1}),`;
-                        const lengthLine = `              LENGTH=${testChunk.length},`;
-                        const attrbLine = `              ATTRB=(ASKIP,NORM),`;
-                        const initialLine = `              INITIAL='${testChunk}'`;
+                        const lengthLine = `          LENGTH=${testChunk.length},`;
+                        const attrbLine = `          ATTRB=ASKIP,`;
+                        const initialLine = `          INITIAL='${testChunk}'`;
                         
                         // Verificar se todas as linhas cabem em 72 colunas
                         if (posLine.length <= maxBMSLine && 
@@ -5885,9 +5885,9 @@
                     // Gerar o DFHMDF para este pedaÃ§o
                     const prefix2 = includeVar && isFirstDFHMDF ? varName.padEnd(6) : '       ';
                     result += formatBMSLine(`${prefix2} DFHMDF POS=(${row + 1},${currentCol + 1}),`, true);
-                    result += formatBMSLine(`              LENGTH=${actualLength},`, true);
-                    result += formatBMSLine(`              ATTRB=(ASKIP,NORM),`, true);
-                    result += formatBMSLine(`              INITIAL='${chunk}'`);
+                    result += formatBMSLine(`          LENGTH=${actualLength},`, true);
+                    result += formatBMSLine(`          ATTRB=ASKIP,`, true);
+                    result += formatBMSLine(`          INITIAL='${chunk}'`);
                     
                     // Atualizar para prÃ³xima iteraÃ§Ã£o
                     remainingText = remainingText.substring(chunk.length).trimStart();
@@ -6918,8 +6918,8 @@
                         var testChunk = remainingText.substring(0, maxTextLength);
                         var posLine    = '        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),';
                         var lengthLine = '          LENGTH=' + testChunk.length + ',';
-                        var attrbLine  = '          ATTRB=(ASKIP,NORM),';
-                        var initLine   = "              INITIAL='" + testChunk + "'";
+                        var attrbLine  = '          ATTRB=ASKIP,';
+                        var initLine   = "          INITIAL='" + testChunk + "'";
                         if (posLine.length <= maxBMSLine && lengthLine.length <= maxBMSLine &&
                             attrbLine.length <= maxBMSLine && initLine.length <= maxBMSLine) {
                             foundFit = true;
@@ -6944,8 +6944,8 @@
                         .replace(/[^\x20-\x7E]/g, ' ');
                     result += formatBMSLine('        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
                     result += formatBMSLine('          LENGTH=' + actualLength + ',', true);
-                    result += formatBMSLine('          ATTRB=(ASKIP,NORM),', true);
-                    result += formatBMSLine("              INITIAL='" + safeChunk + "'");
+                    result += formatBMSLine('          ATTRB=ASKIP,', true);
+                    result += formatBMSLine("          INITIAL='" + safeChunk + "'");
 
                     remainingText = remainingText.substring(chunk.length).replace(/^\s+/, '');
                     currentCol += actualLength + 1;
@@ -7071,7 +7071,8 @@
                 return a.col - b.col;
             });
 
-            allElements.forEach(function(element) {
+            for (var ei = 0; ei < allElements.length; ei++) {
+                var element = allElements[ei];
                 if (element.type === 'label') {
                     bms += generateTextDFHMDF(element.text, element.row, element.col);
                 } else if (element.type === 'outputfield') {
@@ -7096,7 +7097,13 @@
                     bms += formatBMSLine('          LENGTH=' + fieldBMSLength + ',', true);
                     bms += formatBMSLine('          ATTRB=' + attrb);
                     // SÃ³ emitir trailing DFHMDF se couber dentro das 80 colunas
-                    if (afterCol <= 80) {
+                    // Emitir sentinela ASKIP apenas se o proximo elemento na mesma linha nao estiver na posicao do sentinela
+                    var sentinelCol0 = element.col + fieldBMSLength + 1;
+                    var nextSameRow = null;
+                    for (var ni = ei + 1; ni < allElements.length; ni++) {
+                        if (allElements[ni].row === element.row) { nextSameRow = allElements[ni]; break; }
+                    }
+                    if (afterCol <= 80 && (!nextSameRow || nextSameRow.col > sentinelCol0)) {
                         bms += formatBMSLine('        DFHMDF POS=(' + (element.row + 1) + ',' + afterCol + '),', true);
                         bms += formatBMSLine('          LENGTH=0,', true);
                         bms += formatBMSLine('          ATTRB=ASKIP');
@@ -7108,7 +7115,7 @@
                             bms += '*      CAMPO OBRIGATÃ“RIO\n';
                     }
                 }
-            });
+            }
 
             bms += '\n';
             bms += formatBMSLine('        DFHMSD TYPE=FINAL');
