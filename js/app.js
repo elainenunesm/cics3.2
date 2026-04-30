@@ -899,7 +899,7 @@
                     if (fullLine.includes('DFHMDI')) {
                         flushScreen(); // salvar tela anterior
                         const mapNameMatch = fullLine.match(/^(\w{1,8})\s+DFHMDI/i);
-                        const mapName = mapNameMatch ? mapNameMatch[1] : `${fileBaseName}_${screens.length + 1}`;
+                        const mapName = mapNameMatch ? mapNameMatch[1].substring(0, 6) : `${fileBaseName}_${screens.length + 1}`;
                         currentScreen = new Screen(mapName, '');
                         currentScreen.outputFields = [];
                         rawBlockLines = [];
@@ -978,8 +978,8 @@
                                 
                                 // Adicionar nome da variável BMS se houver
                                 if (field.name) {
-                                    newField.bmsVariable = field.name;
-                                    newField.label = field.name;
+                                    newField.bmsVariable = field.name.substring(0, 6);
+                                    newField.label = field.name.substring(0, 6);
                                 }
                                 
                                 currentScreen.fields.push(newField);
@@ -1022,7 +1022,7 @@
             // Extrair nome do campo (primeiras 6-7 colunas antes de DFHMDF)
             const nameMatch = line.match(/^(\w+)\s+DFHMDF/);
             if (nameMatch) {
-                field.name = nameMatch[1].trim();
+                field.name = nameMatch[1].trim().substring(0, 6);
             }
             
             // Extrair POS=(row,col)
@@ -5587,8 +5587,8 @@
             var block = lines.slice(start, end);
             // Substituir nome no DFHMDI pelo screen.name atual (se fornecido)
             if (screen) {
-                var mapName = screen.name.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
-                block[0] = block[0].replace(/^(\w+)(\s+DFHMDI\b)/i, mapName.padEnd(6) + '$2');
+                var mapName = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
+                block[0] = block[0].replace(/^(\w+)(\s+DFHMDI\b)/i, mapName.substring(0,6).padEnd(6) + '  DFHMDI');
             }
             return block.join('\n') + '\n';
         }
@@ -5617,12 +5617,25 @@
             }).join('\n');
         }
 
+        // Normaliza labels de um BMS: trunca nomes > 6 chars e garante mnemonic na col 9
+        function _normalizeBMSLabels(bmsText) {
+            return bmsText.split('\n').map(function(line) {
+                // Linha COM label + mnemonic DFH: truncar label a 6 e garantir 2 espaços
+                var r = line.replace(/^([A-Z][A-Z0-9]{0,7})(\s+)(DFHM(?:SD|DI|DF)\b)/i, function(_, lbl, _sp, mnem) {
+                    return lbl.substring(0, 6).padEnd(6) + '  ' + mnem;
+                });
+                if (r !== line) return r;
+                // Linha SEM label: garantir exatamente 8 espaços antes do mnemonic (col 9)
+                return line.replace(/^\s+(DFHM(?:SD|DI|DF)\b)/i, '        $1');
+            }).join('\n');
+        }
+
         // Gera bloco DFHMSD sintético (sem comentários) a partir do nome da tela
         function _syntheticDFHMSD(screenName) {
             function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
             var mapName = screenName.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
             var h = '';
-            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+            h += fmt(mapName.padEnd(6) + '  DFHMSD LANG=COBOL,', true);
             h += fmt('              MODE=INOUT,', true);
             h += fmt('              STORAGE=AUTO,', true);
             h += fmt('              TERM=3270,', true);
@@ -5641,10 +5654,10 @@
             if (screens.length === 1) {
                 var s = screens[0];
                 if (s.bmsSource) {
-                    // Não editada: usar bmsSource verbatim (inclui DFHMSD original)
-                    var bms = s.bmsSource;
+                    // Não editada: usar bmsSource normalizado (garante col 9 para mnemonics)
+                    var bms = _normalizeBMSLabels(s.bmsSource);
                     if (!/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(bms)) {
-                        bms += '\n' + fmt('       DFHMSD TYPE=FINAL') + fmt('       END');
+                        bms += '\n' + fmt('        DFHMSD TYPE=FINAL') + fmt('        END');
                     }
                     return bms;
                 }
@@ -5665,7 +5678,7 @@
                 // Gerar código limpo para esta tela
                 var code;
                 if (screen.bmsSource && /\bDFHMDI\b/i.test(screen.bmsSource)) {
-                    code = _stripBMSFinalBlock(screen.bmsSource);
+                    code = _stripBMSFinalBlock(_normalizeBMSLabels(screen.bmsSource));
                 } else {
                     code = _stripBMSFinalBlock(_stripBMSSystemComments(generateBMSCode(screen)));
                 }
@@ -5686,8 +5699,8 @@
             });
 
             // Finalização única
-            bms += fmt('       DFHMSD TYPE=FINAL');
-            bms += fmt('       END');
+            bms += fmt('        DFHMSD TYPE=FINAL');
+            bms += fmt('        END');
             return bms;
         }
 
@@ -6806,25 +6819,25 @@
         // O nome do DFHMDI é sempre substituído pelo screen.name atual (evita nomes desatualizados).
         function _extractBMSHeader(screen) {
             function fmt(content, cont) { return content.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
-            var mapName = screen.name.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var mapName = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
             if (screen._bmsHeader) {
                 // Substituir o nome no DFHMDI pelo nome atual da tela
                 var hdr = screen._bmsHeader;
-                hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.padEnd(6) + '$2');
+                hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.padEnd(6) + '  DFHMDI');
                 return hdr + '\n';
             }
             // Caso contrário, gerar header neutro
             var mapSetName = mapName + 'M';
             var h = '';
-            h += fmt(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+            h += fmt(mapName.padEnd(6) + '  DFHMSD LANG=COBOL,', true);
             h += fmt('              MODE=INOUT,', true);
             h += fmt('              STORAGE=AUTO,', true);
             h += fmt('              TERM=3270,', true);
             h += fmt('              TIOAPFX=YES,', true);
             h += fmt('              TYPE=&SYSPARM');
             h += '\n';
-            h += fmt(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+            h += fmt(mapSetName.padEnd(6) + '  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
             h += '*\n';
             return h;
         }
@@ -6859,7 +6872,7 @@
 
                     while (maxTextLength > 0 && !foundFit) {
                         var testChunk = remainingText.substring(0, maxTextLength);
-                        var posLine    = '       DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),';
+                        var posLine    = '        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),';
                         var lengthLine = '              LENGTH=' + testChunk.length + ',';
                         var attrbLine  = '              ATTRB=(ASKIP,NORM),';
                         var initLine   = "              INITIAL='" + testChunk + "'";
@@ -6885,13 +6898,13 @@
                         .replace(/[║│┃╎╏┆┇┊┋]/g, '|')
                         .replace(/[╔╗╚╝╠╣╦╩╬┌┐└┘├┤┬┴┼]/g, '+')
                         .replace(/[^\x20-\x7E]/g, ' ');
-                    result += formatBMSLine('       DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
+                    result += formatBMSLine('        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
                     result += formatBMSLine('              LENGTH=' + actualLength + ',', true);
                     result += formatBMSLine('              ATTRB=(ASKIP,NORM),', true);
                     result += formatBMSLine("              INITIAL='" + safeChunk + "'");
 
                     remainingText = remainingText.substring(chunk.length).replace(/^\s+/, '');
-                    currentCol += actualLength;
+                    currentCol += actualLength + 1;
                 }
                 return result;
             }
@@ -6925,14 +6938,14 @@
                 bms += '* Tela: ' + screen.name + '\n';
                 bms += '* ========================================\n\n';
 
-                bms += formatBMSLine(mapName.padEnd(6) + ' DFHMSD LANG=COBOL,', true);
+                bms += formatBMSLine(mapName.padEnd(6) + '  DFHMSD LANG=COBOL,', true);
                 bms += formatBMSLine('              MODE=INOUT,', true);
                 bms += formatBMSLine('              STORAGE=AUTO,', true);
                 bms += formatBMSLine('              TERM=3270,', true);
                 bms += formatBMSLine('              TIOAPFX=YES,', true);
                 bms += formatBMSLine('              TYPE=&SYSPARM');
                 bms += '\n';
-                bms += formatBMSLine(mapSetName.padEnd(6) + ' DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
+                bms += formatBMSLine(mapSetName.padEnd(6) + '  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1');
                 bms += '*\n';
             }
 
@@ -7000,7 +7013,7 @@
             });
             screen.fields.forEach(function(field, idx) {
                 var varName = (field.bmsVariable || field.label || ('FLD' + (idx + 1)))
-                    .toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8) || ('FLD' + (idx + 1));
+                    .toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6) || ('FLD' + (idx + 1));
                 allElements.push({ type: 'field', row: field.row, col: field.col, field: field, name: varName });
             });
             allElements.sort(function(a, b) {
@@ -7021,12 +7034,13 @@
                     if (!screen.bmsImported) {
                         bms += '*      Campo: ' + (field.label || element.name) + '\n';
                     }
-                    bms += formatBMSLine(element.name.padEnd(6) + ' DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
+                    var _n1 = element.name.substring(0, 6);
+                    bms += formatBMSLine(_n1.padEnd(6) + '  DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
                     bms += formatBMSLine('              LENGTH=' + fieldBMSLength + ',', true);
                     bms += formatBMSLine('              ATTRB=' + attrb);
                     // Só emitir trailing DFHMDF se couber dentro das 80 colunas
                     if (afterCol <= 80) {
-                        bms += formatBMSLine('       DFHMDF POS=(' + (element.row + 1) + ',' + afterCol + '),', true);
+                        bms += formatBMSLine('        DFHMDF POS=(' + (element.row + 1) + ',' + afterCol + '),', true);
                         bms += formatBMSLine('              LENGTH=0,', true);
                         bms += formatBMSLine('              ATTRB=ASKIP');
                     }
@@ -7040,8 +7054,8 @@
             });
 
             bms += '\n';
-            bms += formatBMSLine('       DFHMSD TYPE=FINAL');
-            bms += formatBMSLine('       END');
+            bms += formatBMSLine('        DFHMSD TYPE=FINAL');
+            bms += formatBMSLine('        END');
             return bms;
         }
 
