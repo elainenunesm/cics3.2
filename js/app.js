@@ -221,7 +221,7 @@
                 
                 // Se vazio e nÃ£o obrigatÃ³rio E nÃ£o tem validaÃ§Ã£o de vazio, Ã© vÃ¡lido
                 if (!this.value.trim() && !hasEmptyValidation) {
-                    console.log('[ValidaÃ§Ã£o] âœ… Campo vazio mas nÃ£o obrigatÃ³rio (sem validaÃ§Ã£o de vazio)');
+                    console.log('[ValidaÃ§Ã£o] ✅ Campo vazio mas nÃ£o obrigatÃ³rio (sem validaÃ§Ã£o de vazio)');
                     return true;
                 }
                 
@@ -242,7 +242,7 @@
                     }
                 }
                 
-                console.log('[ValidaÃ§Ã£o] âœ… Todas as validaÃ§Ãµes passaram');
+                console.log('[ValidaÃ§Ã£o] ✅ Todas as validaÃ§Ãµes passaram');
                 return true;
             }
             
@@ -1785,7 +1785,7 @@
             document.getElementById('screenEditorOverlay').style.display = 'flex';
 
             // Atualizar botÃ£o
-            document.getElementById('btnEditScreenIcon').textContent = 'âœ…';
+            document.getElementById('btnEditScreenIcon').textContent = '✅';
             document.getElementById('btnEditScreenLabel').textContent = ' Fechar EdiÃ§Ã£o';
             document.getElementById('btnEditScreen').classList.add('active');
 
@@ -1866,7 +1866,7 @@
             document.getElementById('terminalWrap').classList.remove('edit-mode');
 
             // Restaurar botÃ£o
-            document.getElementById('btnEditScreenIcon').textContent = 'âœï¸';
+            document.getElementById('btnEditScreenIcon').textContent = '✏️';
             document.getElementById('btnEditScreenLabel').textContent = ' Editar';
             document.getElementById('btnEditScreen').classList.remove('active');
 
@@ -2568,7 +2568,7 @@
                     <div class="field-label" style="display: flex; align-items: center; gap: 5px;">
                         <span>${displayLabel}</span>
                         <button class="btn-edit-label" onclick="event.stopPropagation(); editFieldLabel(${index})" 
-                                title="Editar nome do campo">âœï¸</button>
+                                title="Editar nome do campo">✏️</button>
                     </div>
                     <div class="field-details">
                         Tipo: ${field.type === 'numeric' ? 'NumÃ©rico' : 'AlfanumÃ©rico'} | 
@@ -2883,7 +2883,7 @@
                         <div class="rule-message">${rule.message}</div>
                     </div>
                     <div class="rule-actions">
-                        <button class="btn btn-small" onclick="editFieldValidation(${index})" title="Editar validaÃ§Ã£o">âœï¸</button>
+                        <button class="btn btn-small" onclick="editFieldValidation(${index})" title="Editar validaÃ§Ã£o">✏️</button>
                         <button class="btn btn-small danger" onclick="removeFieldValidation(${index})" title="Remover validaÃ§Ã£o">ðŸ—‘ï¸</button>
                     </div>
                 </div>
@@ -3262,7 +3262,7 @@
             if (!pre) return;
             navigator.clipboard.writeText(pre.textContent).then(function() {
                 const original = btn.textContent;
-                btn.textContent = 'âœ… Copiado!';
+                btn.textContent = '✅ Copiado!';
                 btn.style.color = '#4ec9b0';
                 btn.style.borderColor = '#4ec9b0';
                 setTimeout(function() {
@@ -3446,8 +3446,8 @@
                 sel: '#btnEditScreen',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); if (window.innerWidth <= 767) _tourCloseDrawers(); },
-                title: 'âœï¸ Editar Layout da Tela',
-                text: 'Abre o editor de texto da tela ativa â€” uma Ã¡rea de <b>24 linhas Ã— 80 colunas</b>. Digite o layout livremente usando <code>x</code> para campos numÃ©ricos e <code>z</code> para alfanumÃ©ricos. Ao clicar em <b>âœ… Fechar EdiÃ§Ã£o</b>, COBOL e BMS sÃ£o regenerados.'
+                title: '✏️ Editar Layout da Tela',
+                text: 'Abre o editor de texto da tela ativa â€” uma Ã¡rea de <b>24 linhas Ã— 80 colunas</b>. Digite o layout livremente usando <code>x</code> para campos numÃ©ricos e <code>z</code> para alfanumÃ©ricos. Ao clicar em <b>✅ Fechar EdiÃ§Ã£o</b>, COBOL e BMS sÃ£o regenerados.'
             },
             /* â”€â”€ 13. Terminal â”€â”€ */
             {
@@ -3523,7 +3523,7 @@
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
                 title: 'ðŸŽ¯ Tour Interativo',
-                text: 'Este botÃ£o reinicia o tour a qualquer momento. Use sempre que quiser rever uma funcionalidade ou apresentar o editor para alguÃ©m. O tour fecha automaticamente ao clicar em <b>âœ… Concluir</b> ou <b>âœ• Sair</b>.'
+                text: 'Este botÃ£o reinicia o tour a qualquer momento. Use sempre que quiser rever uma funcionalidade ou apresentar o editor para alguÃ©m. O tour fecha automaticamente ao clicar em <b>✅ Concluir</b> ou <b>âœ• Sair</b>.'
             },
             /* â”€â”€ 20. Ajuda â”€â”€ */
             {
@@ -3819,7 +3819,7 @@
                 var btn = this;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(SAMPLE).then(function() {
-                        btn.textContent = 'âœ… Copiado!';
+                        btn.textContent = '✅ Copiado!';
                         setTimeout(function() { btn.innerHTML = 'ðŸ“‹ Copiar exemplo'; }, 2000);
                     });
                 } else {
@@ -3831,7 +3831,7 @@
                     ta.select();
                     document.execCommand('copy');
                     ta.remove();
-                    btn.textContent = 'âœ… Copiado!';
+                    btn.textContent = '✅ Copiado!';
                     setTimeout(function() { btn.innerHTML = 'ðŸ“‹ Copiar exemplo'; }, 2000);
                 }
             });
@@ -4223,7 +4223,7 @@
             rules.forEach(rule => {
                 const fromExists = app.screens.some(s => s.name === rule.fromScreen);
                 const toExists = rule.action === 'navigate' ? app.screens.some(s => s.name === rule.toScreen) : true;
-                const status = fromExists && toExists ? 'âœ… OK' : 'âš ï¸ Tela nÃ£o encontrada';
+                const status = fromExists && toExists ? '✅ OK' : 'âš ï¸ Tela nÃ£o encontrada';
                 const statusColor = fromExists && toExists ? '#00ff00' : '#ff9800';
                 
                 html += `<tr style="border-bottom: 1px solid #003300;">`;
@@ -4289,11 +4289,11 @@
             closeImportModal();
             
             if (needsMapping.length > 0) {
-                showMessage(`âœ… ${imported} regra(s) importada(s). ${needsMapping.length} precisa(m) de associaÃ§Ã£o manual.`, 'info');
+                showMessage(`✅ ${imported} regra(s) importada(s). ${needsMapping.length} precisa(m) de associaÃ§Ã£o manual.`, 'info');
                 // Abrir modal de associaÃ§Ã£o apÃ³s 1 segundo
                 setTimeout(() => openMappingModal(), 1000);
             } else {
-                showMessage(`âœ… ${imported} regra(s) importada(s) com sucesso!`, 'success');
+                showMessage(`✅ ${imported} regra(s) importada(s) com sucesso!`, 'success');
             }
         }
 
@@ -4340,7 +4340,7 @@
                     </div>
                     ` : `
                     <div style="margin-bottom: 10px; color: #00ff00; opacity: 0.7;">
-                        âœ… Tela Origem: ${app.screens.find(s => s.id === rule.fromScreen)?.name}
+                        ✅ Tela Origem: ${app.screens.find(s => s.id === rule.fromScreen)?.name}
                     </div>
                     `}
                     
@@ -4360,7 +4360,7 @@
                     </div>
                     ` : `
                     <div style="margin-bottom: 10px; color: #00ff00; opacity: 0.7;">
-                        âœ… Tela Destino: ${app.screens.find(s => s.id === rule.toScreen)?.name}
+                        ✅ Tela Destino: ${app.screens.find(s => s.id === rule.toScreen)?.name}
                     </div>
                     `}
                 </div>
@@ -4403,14 +4403,14 @@
                 // Atualizar fromScreen se houver select e valor selecionado
                 if (fromSelect && fromSelect.value && fromSelect.value !== '') {
                     const newValue = parseFloat(fromSelect.value);
-                    console.log(`âœï¸ Atualizando fromScreen: ${rule.fromScreen} â†’ ${newValue}`);
+                    console.log(`✏️ Atualizando fromScreen: ${rule.fromScreen} â†’ ${newValue}`);
                     rule.fromScreen = newValue;
                 }
                 
                 // Atualizar toScreen se houver select e valor selecionado
                 if (toSelect && toSelect.value && toSelect.value !== '') {
                     const newValue = parseFloat(toSelect.value);
-                    console.log(`âœï¸ Atualizando toScreen: ${rule.toScreen} â†’ ${newValue}`);
+                    console.log(`✏️ Atualizando toScreen: ${rule.toScreen} â†’ ${newValue}`);
                     rule.toScreen = newValue;
                 }
                 
@@ -4424,7 +4424,7 @@
                 console.log(`ðŸ”Ž ValidaÃ§Ã£o: hasFrom=${hasFrom}, hasTo=${hasTo}, needsTo=${needsTo}`);
                 
                 if (hasFrom && (!needsTo || hasTo)) {
-                    console.log('âœ… Regra completa! Removendo flags...');
+                    console.log('✅ Regra completa! Removendo flags...');
                     delete rule.needsMapping;
                     delete rule.originalFromScreenName;
                     delete rule.originalToScreenName;
@@ -4443,9 +4443,9 @@
             closeMappingModal();
             
             if (stillPending > 0) {
-                showMessage(`âœ… ${updated} regra(s) associada(s). ${stillPending} ainda precisa(m) de associaÃ§Ã£o.`, 'info');
+                showMessage(`✅ ${updated} regra(s) associada(s). ${stillPending} ainda precisa(m) de associaÃ§Ã£o.`, 'info');
             } else {
-                showMessage(`âœ… Todas as ${updated} regra(s) associadas com sucesso!`, 'success');
+                showMessage(`✅ Todas as ${updated} regra(s) associadas com sucesso!`, 'success');
             }
         }
 
@@ -4573,7 +4573,7 @@
                             await writable.write(json);
                             await writable.close();
                             markClean();
-                            showMessage('âœ… Projeto "' + projName + '" salvo com sucesso!', 'success');
+                            showMessage('✅ Projeto "' + projName + '" salvo com sucesso!', 'success');
                             return;
                         }
                     } catch(e) { /* cai no prÃ³ximo mÃ©todo */ }
@@ -4592,7 +4592,7 @@
                     await writable2.write(json);
                     await writable2.close();
                     markClean();
-                    showMessage('âœ… Projeto "' + projName + '" salvo com sucesso!', 'success');
+                    showMessage('✅ Projeto "' + projName + '" salvo com sucesso!', 'success');
                     return;
                 } catch(e) {
                     if (e.name === 'AbortError') return;
@@ -4609,7 +4609,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(a.href);
             markClean();
-            showMessage('âœ… Projeto "' + projName + '" salvo!', 'success');
+            showMessage('✅ Projeto "' + projName + '" salvo!', 'success');
         }
 
         function downloadFile(content, filename, mimeType) {
@@ -7203,7 +7203,7 @@
                                 return '<div class="prop-field-row prop-field-row-edit" onclick="openCamposPanelWithField(' + i + ')">' +
                                     '<div class="prop-field-row-top">' +
                                         '<div class="prop-field-name">' + label + '</div>' +
-                                        '<button class="prop-field-edit-btn" onclick="event.stopPropagation(); editFieldLabel(' + i + ')" title="Alterar nome do campo">âœï¸ Editar</button>' +
+                                        '<button class="prop-field-edit-btn" onclick="event.stopPropagation(); editFieldLabel(' + i + ')" title="Alterar nome do campo">✏️ Editar</button>' +
                                     '</div>' +
                                     '<div class="prop-field-meta">Ln ' + (f.row + 1) + ', Col ' + (f.col + 1) + ' | ' + tipo + ' | Tam: ' + f.length + '</div>' +
                                     '<div class="prop-field-tags">' + bmsTag + valTag + obrigTag + '</div>' +
