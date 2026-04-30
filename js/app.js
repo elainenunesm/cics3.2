@@ -1,5 +1,5 @@
-﻿
-        // Estado Global da AplicaÃ§Ã£o
+﻿﻿
+        // Estado Global da Aplicação
         const app = {
             screens: [],
             currentScreenIndex: -1,
@@ -10,7 +10,7 @@
             cursorCol: 0,
             pendingFiles: [],
             dataMapping: {},
-            validationKeys: ['ENTER'], // Teclas que ativam validaÃ§Ã£o de campos
+            validationKeys: ['ENTER'], // Teclas que ativam validação de campos
             activeCodeTab: 'cics',
             editMode: false           // true quando o editor de layout estiver aberto
         };
@@ -18,7 +18,7 @@
         const ROWS = 24;
         const COLS = 80;
 
-        /* â”€â”€ Flag de alteraÃ§Ãµes nÃ£o salvas â”€â”€ */
+        /* ── Flag de alterações não salvas ── */
         var isDirty = false;
         function markDirty() { isDirty = true; }
         function markClean() { isDirty = false; localStorage.removeItem('cics_force_index'); }
@@ -51,12 +51,12 @@
                 }
 
                 // Parse de PFs em TODAS as linhas do arquivo
-                // Formato esperado: PF1=LABEL ou ENTER=LABEL (mÃºltiplos na mesma linha separados por espaÃ§o)
-                // Suporta labels com espaÃ§os, hÃ­fens, underscores e outros caracteres
+                // Formato esperado: PF1=LABEL ou ENTER=LABEL (múltiplos na mesma linha separados por espaço)
+                // Suporta labels com espaços, hífens, underscores e outros caracteres
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     
-                    // Buscar todos os PFx=LABEL na linha (captura atÃ© espaÃ§o duplo, vÃ­rgula ou fim da linha)
+                    // Buscar todos os PFx=LABEL na linha (captura até espaço duplo, vírgula ou fim da linha)
                     const pfMatches = line.matchAll(/PF(\d+)\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/gi);
                     for (const match of pfMatches) {
                         const pfNum = match[1];
@@ -67,7 +67,7 @@
                         }
                     }
                     
-                    // Buscar ENTER=LABEL na linha (captura atÃ© espaÃ§o duplo, vÃ­rgula ou fim da linha)
+                    // Buscar ENTER=LABEL na linha (captura até espaço duplo, vírgula ou fim da linha)
                     const enterMatch = line.match(/ENTER\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/i);
                     if (enterMatch) {
                         const label = enterMatch[1].trim();
@@ -85,7 +85,7 @@
                 messageField.bmsVariable = 'MENSAGEM';
                 this.fields.push(messageField);
 
-                // Identificar campos editÃ¡veis e seus labels
+                // Identificar campos editáveis e seus labels
                 for (let row = 0; row < ROWS; row++) {
                     let col = 0;
                     while (col < COLS) {
@@ -114,12 +114,12 @@
                             let labelText = '';
                             let labelStart = startCol - 1;
                             
-                            // Voltar atÃ© encontrar texto nÃ£o-espaÃ§o
+                            // Voltar até encontrar texto não-espaço
                             while (labelStart >= 0 && this.data[row][labelStart] === ' ') {
                                 labelStart--;
                             }
                             
-                            // Capturar o texto do label (atÃ© encontrar espaÃ§os ou inÃ­cio da linha)
+                            // Capturar o texto do label (até encontrar espaços ou início da linha)
                             if (labelStart >= 0) {
                                 let labelEnd = labelStart;
                                 while (labelStart > 0 && this.data[row][labelStart - 1] !== ' ') {
@@ -139,7 +139,7 @@
                                 
                                 if (labelText) {
                                     field.label = labelText;
-                                    // Gerar variÃ¡vel BMS baseada no label (mÃ¡x 5 chars + 'I' = 6 total)
+                                    // Gerar variável BMS baseada no label (máx 5 chars + 'I' = 6 total)
                                     field.bmsVariable = labelText.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 5) + 'I';
                                 }
                             }
@@ -151,7 +151,7 @@
                     }
                 }
 
-                // Garantir unicidade das variÃ¡veis BMS: sufixar duplicatas com 2, 3, ...
+                // Garantir unicidade das variáveis BMS: sufixar duplicatas com 2, 3, ...
                 const varCount = {};
                 for (const f of this.fields) {
                     if (!f.bmsVariable) continue;
@@ -179,19 +179,19 @@
                 this.originalValue = value;
                 this.linkedField = null; // Para mapeamento entre telas
                 this.label = ''; // Nome customizado do campo
-                this.bmsVariable = ''; // Nome da variÃ¡vel BMS para exportaÃ§Ã£o
+                this.bmsVariable = ''; // Nome da variável BMS para exportação
                 
                 // Atributos BMS
                 this.bmsAttributes = {
                     protection: null, // UNPROT, PROT
-                    type: null, // NUM, NORM (tipo de variÃ¡vel)
+                    type: null, // NUM, NORM (tipo de variável)
                     intensity: null, // BRT, DRK
                     ic: false, // Insert Cursor
                     fset: false, // Field Set
                     askip: false // Auto-skip (de outros atributos)
                 };
                 
-                // ValidaÃ§Ã£o customizada
+                // Validação customizada
                 this.validationRules = [];
                 this.errorMessage = '';
                 this.isRequired = false;
@@ -205,44 +205,44 @@
                 // Limpar mensagem de erro anterior
                 this.errorMessage = '';
                 
-                console.log(`[ValidaÃ§Ã£o] Campo "${this.label || 'sem label'}" | Valor: "${this.value}" | Regras: ${this.validationRules.length}`);
+                console.log(`[Validação] Campo "${this.label || 'sem label'}" | Valor: "${this.value}" | Regras: ${this.validationRules.length}`);
                 
-                // VerificaÃ§Ã£o de campo obrigatÃ³rio
+                // Verificação de campo obrigatório
                 if (this.isRequired && !this.value.trim()) {
-                    this.errorMessage = 'Campo obrigatÃ³rio';
-                    console.log('[ValidaÃ§Ã£o] âŒ Campo obrigatÃ³rio vazio');
+                    this.errorMessage = 'Campo obrigatório';
+                    console.log('[Validação] ❌ Campo obrigatório vazio');
                     return false;
                 }
                 
-                // Verificar se hÃ¡ regras que precisam validar campo vazio (notZeros, notSpaces)
+                // Verificar se há regras que precisam validar campo vazio (notZeros, notSpaces)
                 const hasEmptyValidation = this.validationRules.some(r => 
                     r.type === 'notZeros' || r.type === 'notSpaces'
                 );
                 
-                // Se vazio e nÃ£o obrigatÃ³rio E nÃ£o tem validaÃ§Ã£o de vazio, Ã© vÃ¡lido
+                // Se vazio e não obrigatório E não tem validação de vazio, é válido
                 if (!this.value.trim() && !hasEmptyValidation) {
-                    console.log('[ValidaÃ§Ã£o] ✅ Campo vazio mas nÃ£o obrigatÃ³rio (sem validaÃ§Ã£o de vazio)');
+                    console.log('[Validação] ✅ Campo vazio mas não obrigatório (sem validação de vazio)');
                     return true;
                 }
                 
-                // ValidaÃ§Ã£o de tipo bÃ¡sico (apenas se nÃ£o estiver vazio)
+                // Validação de tipo básico (apenas se não estiver vazio)
                 if (this.value.trim() && this.type === 'numeric' && !/^\d*$/.test(this.value)) {
-                    this.errorMessage = 'Apenas nÃºmeros sÃ£o permitidos';
-                    console.log('[ValidaÃ§Ã£o] âŒ Tipo numÃ©rico invÃ¡lido');
+                    this.errorMessage = 'Apenas números são permitidos';
+                    console.log('[Validação] ❌ Tipo numérico inválido');
                     return false;
                 }
                 
-                // ValidaÃ§Ãµes customizadas
+                // Validações customizadas
                 for (const rule of this.validationRules) {
-                    console.log(`[ValidaÃ§Ã£o] Testando regra: ${rule.type}`);
+                    console.log(`[Validação] Testando regra: ${rule.type}`);
                     if (!this.validateRule(rule)) {
                         this.errorMessage = rule.message;
-                        console.log(`[ValidaÃ§Ã£o] âŒ Falhou na regra ${rule.type}: ${rule.message}`);
+                        console.log(`[Validação] ❌ Falhou na regra ${rule.type}: ${rule.message}`);
                         return false;
                     }
                 }
                 
-                console.log('[ValidaÃ§Ã£o] ✅ Todas as validaÃ§Ãµes passaram');
+                console.log('[Validação] ✅ Todas as validações passaram');
                 return true;
             }
             
@@ -274,12 +274,12 @@
                     case 'notZeros':
                         const trimmedValue = value.trim();
                         const isOnlyZeros = /^0+$/.test(trimmedValue);
-                        console.log('[notZeros] Valor:', JSON.stringify(value), '| Trimmed:', JSON.stringify(trimmedValue), '| Ã‰ sÃ³ zeros?', isOnlyZeros, '| Resultado:', !isOnlyZeros);
+                        console.log('[notZeros] Valor:', JSON.stringify(value), '| Trimmed:', JSON.stringify(trimmedValue), '| É só zeros?', isOnlyZeros, '| Resultado:', !isOnlyZeros);
                         return !isOnlyZeros;
                     
                     case 'notSpaces':
                         const hasContent = value.trim().length > 0;
-                        console.log('[notSpaces] Valor:', JSON.stringify(value), '| Length:', value.length, '| Trimmed length:', value.trim().length, '| Tem conteÃºdo?', hasContent);
+                        console.log('[notSpaces] Valor:', JSON.stringify(value), '| Length:', value.length, '| Trimmed length:', value.trim().length, '| Tem conteúdo?', hasContent);
                         return hasContent;
                     
                     case 'email':
@@ -318,7 +318,7 @@
             }
         }
 
-        // InicializaÃ§Ã£o
+        // Inicialização
         function init() {
             /* Se veio de um refresh (beforeunload disparou), vai para index */
             if (localStorage.getItem('cics_force_index')) {
@@ -327,7 +327,7 @@
                 window.location.replace('index.html');
                 return;
             }
-            /* Se nÃ£o hÃ¡ projeto ativo, volta para o index */
+            /* Se não há projeto ativo, volta para o index */
             if (!localStorage.getItem('cics_current_project')) {
                 window.location.replace('index.html');
                 return;
@@ -339,11 +339,11 @@
             loadEditorState();
         }
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-           loadEditorState â€” reconstrÃ³i TUDO salvo em cics_editor_state
-           (telas, campos + validaÃ§Ãµes + atributos, regras de navegaÃ§Ã£o,
+        /* ══════════════════════════════════════════════════════════
+           loadEditorState — reconstrói TUDO salvo em cics_editor_state
+           (telas, campos + validações + atributos, regras de navegação,
             validationKeys, dataMapping)
-        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        ══════════════════════════════════════════════════════════ */
         function loadEditorState() {
             var raw = '';
             try { raw = localStorage.getItem('cics_editor_state') || ''; } catch(e) {}
@@ -353,12 +353,12 @@
             try { state = JSON.parse(raw); } catch(e) { return; }
             if (!state || !Array.isArray(state.screens) || state.screens.length === 0) return;
 
-            /* â”€â”€ ReconstrÃ³i cada tela â”€â”€ */
+            /* ── Reconstrói cada tela ── */
             app.screens = state.screens.map(function(sd) {
-                /* Cria a Screen com o conteÃºdo salvo (parseContent rodarÃ¡ normalmente) */
+                /* Cria a Screen com o conteúdo salvo (parseContent rodará normalmente) */
                 var screen = new Screen(sd.name, sd.content || '', sd.id);
 
-                /* Sobrescreve os campos com os dados salvos (incluem validaÃ§Ãµes, labels, etc.) */
+                /* Sobrescreve os campos com os dados salvos (incluem validações, labels, etc.) */
                 if (Array.isArray(sd.fields)) {
                     screen.fields = sd.fields.map(function(fd) {
                         var f = new Field(fd.row, fd.col, fd.length, fd.type, fd.value || '');
@@ -397,14 +397,14 @@
                 return screen;
             });
 
-            /* â”€â”€ Restaura regras de navegaÃ§Ã£o â”€â”€ */
+            /* ── Restaura regras de navegação ── */
             app.navigationRules = Array.isArray(state.navigationRules) ? state.navigationRules : [];
 
-            /* â”€â”€ Restaura configuraÃ§Ãµes globais â”€â”€ */
+            /* ── Restaura configurações globais ── */
             if (Array.isArray(state.validationKeys))    app.validationKeys = state.validationKeys;
             if (state.dataMapping && typeof state.dataMapping === 'object') app.dataMapping = state.dataMapping;
 
-            /* â”€â”€ Renderiza lista de telas e carrega a primeira â”€â”€ */
+            /* ── Renderiza lista de telas e carrega a primeira ── */
             app.currentScreenIndex = -1;
             updateScreensList();
             if (app.screens.length > 0) {
@@ -434,7 +434,7 @@
             }
         }
 
-        // â”€â”€â”€ MOBILE TERMINAL INPUT â”€â”€â”€
+        // ─── MOBILE TERMINAL INPUT ───
         function _setupMobileInput() {
             var inp = document.getElementById('mobileTerminalInput');
             if (!inp) return;
@@ -451,7 +451,7 @@
                 for (var i = 0; i < typed.length; i++) {
                     var ch = typed[i];
                     if (field.type === 'numeric' && !/\d/.test(ch)) {
-                        showMessage('Este campo aceita apenas nÃºmeros!', 'error');
+                        showMessage('Este campo aceita apenas números!', 'error');
                         animateFieldError(field);
                         continue;
                     }
@@ -549,15 +549,15 @@
             // Teclado
             document.addEventListener('keydown', handleKeyPress);
             
-            // Teclas de funÃ§Ã£o
+            // Teclas de função
             document.querySelectorAll('.function-key').forEach(key => {
                 key.addEventListener('click', handleFunctionKey);
             });
             
-            // Impedir que eventos do painel de validaÃ§Ã£o afetem o terminal
+            // Impedir que eventos do painel de validação afetem o terminal
             const validationPanel = document.getElementById('validationPanel');
             if (validationPanel) {
-                // Impedir propagaÃ§Ã£o de eventos de teclado
+                // Impedir propagação de eventos de teclado
                 validationPanel.addEventListener('keydown', (e) => {
                     e.stopPropagation();
                 });
@@ -578,16 +578,16 @@
                 });
             }
 
-            // Event listeners para importaÃ§Ã£o de regras
+            // Event listeners para importação de regras
             const importInput = document.getElementById('importFileInput');
             if (importInput) {
                 importInput.removeEventListener('change', handleImportFile); // Remove anterior se existir
                 importInput.addEventListener('change', handleImportFile);
             }
 
-            /* â”€â”€ ProteÃ§Ã£o contra refresh sem salvar â”€â”€ */
+            /* ── Proteção contra refresh sem salvar ── */
             window.addEventListener('beforeunload', function(e) {
-                /* Sempre marca para redirecionar ao index no prÃ³ximo carregamento */
+                /* Sempre marca para redirecionar ao index no próximo carregamento */
                 localStorage.setItem('cics_force_index', '1');
                 if (isDirty) {
                     /* Exibe dialogo nativo do navegador */
@@ -595,7 +595,7 @@
                     e.returnValue = '';
                 }
             });
-            /* Se o usuÃ¡rio cancelou o dialogo, a janela volta ao foco: limpa o flag */
+            /* Se o usuário cancelou o dialogo, a janela volta ao foco: limpa o flag */
             window.addEventListener('focus', function() {
                 localStorage.removeItem('cics_force_index');
             });
@@ -652,11 +652,11 @@
                 showMessage('Informe um nome para a tela!', 'error');
                 return;
             }
-            // Substituir espaÃ§os e caracteres invÃ¡lidos por _
+            // Substituir espaços e caracteres inválidos por _
             const name = raw.replace(/[^A-Z0-9_\-]/g, '_').substring(0, 8);
             // Verificar nome duplicado
             if (app.screens.some(s => s.name.toUpperCase() === name)) {
-                showMessage(`JÃ¡ existe uma tela chamada "${name}"!`, 'error');
+                showMessage(`Já existe uma tela chamada "${name}"!`, 'error');
                 return;
             }
             const screen = new Screen(name, '');
@@ -665,7 +665,7 @@
             updateScreensList();
             closeNewScreenModal();
             loadScreen(app.screens.length - 1);
-            // Abrir editor de layout automaticamente para o usuÃ¡rio desenhar a tela
+            // Abrir editor de layout automaticamente para o usuário desenhar a tela
             openScreenEditor();
         }
 
@@ -734,9 +734,9 @@
             for (const file of app.pendingFiles) {
                 const content = await readFile(file);
                 
-                // Detectar se Ã© um arquivo BMS
+                // Detectar se é um arquivo BMS
                 if (isBMSFile(content)) {
-                    // Processar arquivo BMS â€” pode retornar vÃ¡rias telas (um DFHMDI = uma tela)
+                    // Processar arquivo BMS — pode retornar várias telas (um DFHMDI = uma tela)
                     const bmsScreens = parseBMSToScreen(content, file.name);
                     if (bmsScreens && bmsScreens.length > 0) {
                         for (const screen of bmsScreens) {
@@ -753,10 +753,10 @@
                     const screen = new Screen(screenName, content);
                     app.screens.push(screen);
                     
-                    // Criar regras de navegaÃ§Ã£o automaticamente APENAS para PF keys encontradas no TXT
+                    // Criar regras de navegação automaticamente APENAS para PF keys encontradas no TXT
                     if (screen.pfKeys && Object.keys(screen.pfKeys).length > 0) {
                         for (const [key, label] of Object.entries(screen.pfKeys)) {
-                            // Verificar se jÃ¡ existe regra para esta tela + tecla
+                            // Verificar se já existe regra para esta tela + tecla
                             const existingRule = app.navigationRules.find(r => 
                                 r.fromScreen === screen.id && r.key === key
                             );
@@ -802,12 +802,12 @@
             }
         }
 
-        // Detectar se o arquivo Ã© um BMS
+        // Detectar se o arquivo é um BMS
         function isBMSFile(content) {
             return content.includes('DFHMSD') || content.includes('DFHMDI') || content.includes('DFHMDF');
         }
 
-        // Parsear arquivo BMS e criar Screen(s) â€” retorna array (um DFHMDI = uma tela)
+        // Parsear arquivo BMS e criar Screen(s) — retorna array (um DFHMDI = uma tela)
         function parseBMSToScreen(bmsContent, fileName) {
             try {
                 const fileBaseName = fileName.replace(/\.[^.]+$/, '');
@@ -815,7 +815,7 @@
                 let currentScreen = null;
                 let pfKeysFound = {};
 
-                // Finalizar tela atual: criar regras de navegaÃ§Ã£o e empurrar para o array
+                // Finalizar tela atual: criar regras de navegação e empurrar para o array
                 const flushScreen = () => {
                     if (!currentScreen) return;
                     currentScreen.pfKeys = pfKeysFound;
@@ -823,8 +823,8 @@
                     const blockSrc = [...headerLines, ...rawBlockLines].join('\n');
                     currentScreen.bmsSource = blockSrc || null;
                     currentScreen.bmsImported = true; // marcador: veio de arquivo BMS
-                    // Salvar o bloco DFHMSD+DFHMDI original para regeneraÃ§Ã£o apÃ³s ediÃ§Ã£o
-                    // Extrair sÃ³ as linhas atÃ© (e incluindo) o DFHMDI
+                    // Salvar o bloco DFHMSD+DFHMDI original para regeneração após edição
+                    // Extrair só as linhas até (e incluindo) o DFHMDI
                     const allHdrLines = [...headerLines, ...rawBlockLines];
                     const dfhmdiIdx = allHdrLines.findIndex(l => /DFHMDI/i.test(l));
                     currentScreen._bmsHeader = dfhmdiIdx >= 0
@@ -868,26 +868,26 @@
                         headerLines.push(line);
                     }
 
-                    // Ignorar linhas de comentÃ¡rio (col 1 = '*') e linhas vazias
+                    // Ignorar linhas de comentário (col 1 = '*') e linhas vazias
                     if (line.trim() === '' || line[0] === '*') { currentLine = ''; continue; }
                     
-                    // Detectar tipo de continuaÃ§Ã£o antes de acumular
+                    // Detectar tipo de continuação antes de acumular
                     const isStringCont = /INITIAL='[^']*$/.test(currentLine); // literal de string ainda aberto
-                    const hasColCont   = line.length > 71 && line.charAt(71) !== ' '; // qualquer char nÃ£o-branco em col 72
+                    const hasColCont   = line.length > 71 && line.charAt(71) !== ' '; // qualquer char não-branco em col 72
 
                     // Acumular conforme o tipo:
                     if (isStringCont) {
-                        // ContinuaÃ§Ã£o de literal: strip indentaÃ§Ã£o inicial (colunas 1-15 em assembler)
-                        // e nÃ£o incluir o marcador de col 72 se houver
+                        // Continuação de literal: strip indentação inicial (colunas 1-15 em assembler)
+                        // e não incluir o marcador de col 72 se houver
                         currentLine += line.substring(0, hasColCont ? 71 : 72).replace(/^\s+/, '');
                     } else if (hasColCont) {
-                        // Col 72 preenchida: nÃ£o incluir o marcador de continuaÃ§Ã£o no conteÃºdo
+                        // Col 72 preenchida: não incluir o marcador de continuação no conteúdo
                         currentLine += line.substring(0, 71).trimEnd();
                     } else {
                         currentLine += line.substring(0, 72).trimEnd();
                     }
 
-                    // ContinuaÃ§Ã£o: col 72, vÃ­rgula final, ou literal de string ainda aberto
+                    // Continuação: col 72, vírgula final, ou literal de string ainda aberto
                     const isContinuation = hasColCont
                         || currentLine.trimEnd().endsWith(',')
                         || /INITIAL='[^']*$/.test(currentLine);
@@ -896,7 +896,7 @@
                     const fullLine = currentLine;
                     currentLine = '';
 
-                    // DFHMDI â†’ nova tela
+                    // DFHMDI → nova tela
                     if (fullLine.includes('DFHMDI')) {
                         flushScreen(); // salvar tela anterior
                         const mapNameMatch = fullLine.match(/^(\w{1,8})\s+DFHMDI/i);
@@ -905,13 +905,13 @@
                         currentScreen.outputFields = [];
                         rawBlockLines = [];
                         // A linha DFHMDI foi adicionada em headerLines (pois currentScreen era null antes)
-                        // MovÃª-la para rawBlockLines
+                        // Movê-la para rawBlockLines
                         const dfhmdiRaw = headerLines.pop();
                         if (dfhmdiRaw !== undefined) rawBlockLines.push(dfhmdiRaw);
                         continue;
                     }
 
-                    // DFHMSD TYPE=FINAL â†’ encerra
+                    // DFHMSD TYPE=FINAL → encerra
                     if (fullLine.includes('DFHMSD')) continue;
 
                     // Processar linha completa
@@ -923,9 +923,9 @@
                         }
                         const field = parseDFHMDFLine(fullLine);
                         if (field) {
-                            // Se tem INITIAL, Ã© um label estÃ¡tico
+                            // Se tem INITIAL, é um label estático
                             if (field.initial) {
-                                // Adicionar texto estÃ¡tico na tela
+                                // Adicionar texto estático na tela
                                 for (let col = 0; col < field.initial.length; col++) {
                                     if (field.row < 24 && field.col + col < 80) {
                                         currentScreen.data[field.row][field.col + col] = field.initial[col];
@@ -935,21 +935,21 @@
                                 // Detectar PF keys no INITIAL
                                 const text = field.initial;
                                 
-                                // PadrÃ£o 1: PF3=SAIR
+                                // Padrão 1: PF3=SAIR
                                 const matches1 = text.matchAll(/PF(\d+)\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/gi);
                                 for (const match of matches1) {
                                     const label = match[2].trim();
                                     if (label) pfKeysFound[`PF${match[1]}`] = label;
                                 }
                                 
-                                // PadrÃ£o 2: ENTER=CONFIRMAR
+                                // Padrão 2: ENTER=CONFIRMAR
                                 const enterMatch = text.match(/ENTER\s*=\s*([^,\s][^,]*?)(?=\s{2,}|\s*PF\d|\s*ENTER\s*=|\s*$)/i);
                                 if (enterMatch) {
                                     const label = enterMatch[1].trim();
                                     if (label) pfKeysFound['ENTER'] = label;
                                 }
                                 
-                                // PadrÃ£o 3: PF7/PF8=NAVEGAR
+                                // Padrão 3: PF7/PF8=NAVEGAR
                                 const matches2 = text.matchAll(/PF(\d+)(?:\/PF(\d+))+=([\w\s-]+)/gi);
                                 for (const match of matches2) {
                                     const pfNumbers = match[0].match(/PF(\d+)/gi);
@@ -961,8 +961,8 @@
                                     }
                                 }
                             }
-                            // Se tem LENGTH > 0 e NÃƒO Ã© PROT nem ASKIP â†’ campo editÃ¡vel (UNPROT Ã© o default em BMS)
-                            // ATTRB=NORM equivale a ATTRB=(UNPROT,NORM) â€” sem PROT explÃ­cito = editÃ¡vel
+                            // Se tem LENGTH > 0 e NÃƒO é PROT nem ASKIP → campo editável (UNPROT é o default em BMS)
+                            // ATTRB=NORM equivale a ATTRB=(UNPROT,NORM) — sem PROT explícito = editável
                             else if (field.length > 0 && !field.attrb.includes('PROT') && !field.attrb.includes('ASKIP')) {
                                 const fieldType = field.attrb.includes('NUM') ? 'numeric' : 'alpha';
                                 const newField = new Field(field.row, field.col, field.length, fieldType, '');
@@ -978,13 +978,13 @@
                                 if (field.attrb.includes('FSET'))   newField.bmsAttributes.fset = true;
                                 if (field.attrb.includes('ASKIP'))  newField.bmsAttributes.askip = true;
                                 
-                                // Adicionar nome da variÃ¡vel BMS se houver
+                                // Adicionar nome da variável BMS se houver
                                 if (field.name) {
                                     newField.bmsVariable = field.name.substring(0, 6);
                                     newField.label = field.name.substring(0, 6);
                                 }
                                 
-                                // Se jÃ¡ existe campo na mesma posiÃ§Ã£o (ex: MENSAGEM do sistema),
+                                // Se já existe campo na mesma posição (ex: MENSAGEM do sistema),
                                 // atualizar em vez de duplicar
                                 const existingIdx = currentScreen.fields.findIndex(function(ef) {
                                     return ef.row === newField.row && ef.col === newField.col;
@@ -1002,7 +1002,7 @@
                                     currentScreen.fields.push(newField);
                                 }
                             }
-                            // Se tem LENGTH > 0 e Ã© PROT explÃ­cito sem INITIAL â†’ Ã¡rea de saÃ­da (preenchida pelo COBOL)
+                            // Se tem LENGTH > 0 e é PROT explícito sem INITIAL → área de saída (preenchida pelo COBOL)
                             else if (field.length > 0 && !field.attrb.includes('ASKIP')) {
                                 currentScreen.outputFields.push({
                                     row:    field.row,
@@ -1017,7 +1017,7 @@
                     }
                 }
                 
-                flushScreen(); // salvar Ãºltima tela
+                flushScreen(); // salvar última tela
                 
                 return screens;
             } catch (error) {
@@ -1107,7 +1107,7 @@
                     ${screen.fields.length > 0 ? 
                         `<span class="screen-item-badge">${screen.fields.length} campos</span>` : ''}
                     <div class="screen-item-actions">
-                        <button class="screen-action-btn delete" onclick="event.stopPropagation(); deleteScreen(${index})">ðŸ—‘ï¸</button>
+                        <button class="screen-action-btn delete" onclick="event.stopPropagation(); deleteScreen(${index})">🗑️</button>
                     </div>
                 </div>
             `).join('');
@@ -1138,7 +1138,7 @@
             updateScreenInfo();
             updatePFKeysLabels();
             
-            // Atualizar lista de campos no painel de validaÃ§Ã£o
+            // Atualizar lista de campos no painel de validação
             selectedFieldIndex = -1;
             _highlightPanelField(-1);
             if (!document.getElementById('validationPanel').classList.contains('collapsed')) {
@@ -1150,7 +1150,7 @@
                 focusField(0);
             }
 
-            // Atualizar painel de cÃ³digo e contagem IDE
+            // Atualizar painel de código e contagem IDE
             updateScreenFieldsCount();
             updateCodePanel();
 
@@ -1168,7 +1168,7 @@
                         } else if (rule.action === 'navigate_msg' && rule.message) {
                             displayMessageOnFirstLine(rule.message);
                         } else if (rule.action === 'navigate') {
-                            // ONLOAD com navigate nÃ£o faz sentido, ignorar
+                            // ONLOAD com navigate não faz sentido, ignorar
                         }
                     });
                 } else {
@@ -1186,7 +1186,7 @@
                 chars.forEach((char, col) => {
                     char.className = 'screen-char';
                     
-                    // Primeira linha Ã© sempre campo de mensagem (branco)
+                    // Primeira linha é sempre campo de mensagem (branco)
                     if (row === 0) {
                         char.classList.add('message-line');
                         char.textContent = screen.data[row][col];
@@ -1195,7 +1195,7 @@
                     
                     char.textContent = screen.data[row][col];
                     
-                    // Verificar se estÃ¡ em um campo editÃ¡vel
+                    // Verificar se está em um campo editável
                     const field = screen.fields.find(f => 
                         f.row === row && col >= f.col && col < f.col + f.length
                     );
@@ -1203,16 +1203,16 @@
                     if (field) {
                         char.classList.add(field.type === 'numeric' ? 'numeric' : 'unprotected');
                         const fieldOffset = col - field.col;
-                        // Mostrar '_' quando vazio (comportamento padrÃ£o 3270)
+                        // Mostrar '_' quando vazio (comportamento padrão 3270)
                         char.textContent = field.value[fieldOffset] || '_';
                     } else {
-                        // Verificar se estÃ¡ em um campo de saÃ­da PROT (sem INITIAL)
+                        // Verificar se está em um campo de saída PROT (sem INITIAL)
                         const outField = screen.outputFields && screen.outputFields.find(f =>
                             f.row === row && col >= f.col && col < f.col + f.length
                         );
                         if (outField) {
                             char.classList.add(outField.bright ? 'prot-output-brt' : 'prot-output');
-                            // Campo de saÃ­da: vazio (preenchido pelo COBOL em runtime)
+                            // Campo de saída: vazio (preenchido pelo COBOL em runtime)
                             char.textContent = '_';
                         } else if (screen.data[row][col] !== ' ') {
                             char.classList.add('protected');
@@ -1238,7 +1238,7 @@
             if (confirm(`Remover a tela "${app.screens[index].name}"?`)) {
                 const deletedScreenId = app.screens[index].id;
                 
-                // Remover regras de navegaÃ§Ã£o associadas a esta tela
+                // Remover regras de navegação associadas a esta tela
                 app.navigationRules = app.navigationRules.filter(r => 
                     r.fromScreen !== deletedScreenId && r.toScreen !== deletedScreenId
                 );
@@ -1249,12 +1249,12 @@
                 if (app.currentScreenIndex === index) {
                     // Se deletou a tela ativa, carregar outra se houver
                     if (app.screens.length > 0) {
-                        // Carregar a tela anterior ou a primeira disponÃ­vel
+                        // Carregar a tela anterior ou a primeira disponível
                         const newIndex = index > 0 ? index - 1 : 0;
-                        app.currentScreenIndex = -1; // Reset temporÃ¡rio
+                        app.currentScreenIndex = -1; // Reset temporário
                         loadScreen(newIndex);
                     } else {
-                        // NÃ£o hÃ¡ mais telas
+                        // Não há mais telas
                         app.currentScreenIndex = -1;
                         app.fields = [];
                         initTerminal();
@@ -1269,7 +1269,7 @@
             }
         }
 
-        // NavegaÃ§Ã£o
+        // Navegação
         function nextScreen() {
             if (app.screens.length === 0) return;
             
@@ -1290,7 +1290,7 @@
                 return;
             }
 
-            // Buscar uma tecla que ainda nÃ£o estÃ¡ sendo usada na tela atual
+            // Buscar uma tecla que ainda não está sendo usada na tela atual
             const currentScreen = app.screens[app.currentScreenIndex >= 0 ? app.currentScreenIndex : 0];
             const allKeys = ['ONLOAD', 'ENTER', 'PF1', 'PF2', 'PF3', 'PF4', 'PF5', 'PF6', 'PF7', 'PF8', 'PF9', 'PF10', 'PF11', 'PF12'];
             const usedKeys = app.navigationRules
@@ -1299,7 +1299,7 @@
             
             const availableKey = allKeys.find(k => !usedKeys.includes(k)) || 'PF1';
 
-            // Determinar aÃ§Ã£o padrÃ£o
+            // Determinar ação padrão
             let defaultAction = 'navigate';
 
             const rule = {
@@ -1322,16 +1322,16 @@
             const navMapping = document.getElementById('navMapping');
             const rulesCount = document.getElementById('rulesCount');
             
-            // Atualizar contador e mostrar botÃ£o de associaÃ§Ã£o se necessÃ¡rio
+            // Atualizar contador e mostrar botão de associação se necessário
             const unmappedCount = app.navigationRules.filter(r => r.needsMapping).length;
             rulesCount.innerHTML = `${app.navigationRules.length} regra(s)`;
             
             if (unmappedCount > 0) {
-                rulesCount.innerHTML += ` <button onclick="openMappingModal()" style="padding: 3px 8px; background: #663300; color: #ff9800; border: 1px solid #ff9800; cursor: pointer; font-size: 10px; border-radius: 3px; margin-left: 5px;">âš ï¸ ${unmappedCount} sem associaÃ§Ã£o</button>`;
+                rulesCount.innerHTML += ` <button onclick="openMappingModal()" style="padding: 3px 8px; background: #663300; color: #ff9800; border: 1px solid #ff9800; cursor: pointer; font-size: 10px; border-radius: 3px; margin-left: 5px;">⚠️ ${unmappedCount} sem associação</button>`;
             }
             
             if (app.navigationRules.length === 0) {
-                navMapping.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 20px;">Nenhuma regra de navegaÃ§Ã£o configurada</div>';
+                navMapping.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 20px;">Nenhuma regra de navegação configurada</div>';
                 return;
             }
 
@@ -1344,54 +1344,54 @@
                 return `
                     <div class="nav-rule${needsMapping ? ' nav-rule-warn' : ''}">
                         <div class="nav-row1">
-                            ${needsMapping ? '<span class="nav-warn-icon" title="Precisa de associaÃ§Ã£o">âš ï¸</span>' : ''}
+                            ${needsMapping ? '<span class="nav-warn-icon" title="Precisa de associação">⚠️</span>' : ''}
                             <span class="nav-lbl">De:</span>
                             <select class="nav-sel" onchange="updateNavigationRule(${rule.id}, 'fromScreen', this.value)">
-                                ${!fromScreen ? `<option value="">âš ï¸ ${rule.originalFromScreenName || 'Selecione'}</option>` : ''}
+                                ${!fromScreen ? `<option value="">⚠️ ${rule.originalFromScreenName || 'Selecione'}</option>` : ''}
                                 ${app.screens.map(s => `<option value="${s.id}" ${s.id === rule.fromScreen ? 'selected' : ''}>${s.name}</option>`).join('')}
                             </select>
                             <select class="nav-sel nav-sel-key" onchange="updateNavigationRule(${rule.id}, 'key', this.value)">
-                                <option value="ONLOAD" ${rule.key === 'ONLOAD' ? 'selected' : ''}>ðŸ”„ Load</option>
+                                <option value="ONLOAD" ${rule.key === 'ONLOAD' ? 'selected' : ''}>🔄 Load</option>
                                 <option value="ENTER"  ${rule.key === 'ENTER'  ? 'selected' : ''}>ENTER</option>
                                 ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => `<option value="PF${n}" ${rule.key === 'PF'+n ? 'selected' : ''}>PF${n}</option>`).join('')}
                             </select>
                         </div>
                         <div class="nav-row2">
                             <select class="nav-sel nav-sel-action" onchange="updateNavigationRule(${rule.id}, 'action', this.value)">
-                                <option value="navigate"     ${action === 'navigate'     ? 'selected' : ''}>â†’ Navegar</option>
-                                <option value="navigate_msg" ${action === 'navigate_msg' ? 'selected' : ''}>â†’ Nav+Msg</option>
-                                <option value="message"      ${action === 'message'      ? 'selected' : ''}>ðŸ’¬ Mensagem</option>
-                                <option value="clear"        ${action === 'clear'        ? 'selected' : ''}>ðŸ—‘ Limpar</option>
-                                <option value="clear_msg"    ${action === 'clear_msg'    ? 'selected' : ''}>ðŸ—‘ Limp+Msg</option>
-                                <option value="terminate"    ${action === 'terminate'    ? 'selected' : ''}>ðŸšª Encerrar</option>
+                                <option value="navigate"     ${action === 'navigate'     ? 'selected' : ''}>→ Navegar</option>
+                                <option value="navigate_msg" ${action === 'navigate_msg' ? 'selected' : ''}>→ Nav+Msg</option>
+                                <option value="message"      ${action === 'message'      ? 'selected' : ''}>💬 Mensagem</option>
+                                <option value="clear"        ${action === 'clear'        ? 'selected' : ''}>🗑 Limpar</option>
+                                <option value="clear_msg"    ${action === 'clear_msg'    ? 'selected' : ''}>🗑 Limp+Msg</option>
+                                <option value="terminate"    ${action === 'terminate'    ? 'selected' : ''}>🚪 Encerrar</option>
                             </select>
                             ${action === 'navigate' ? `
                                 <select class="nav-sel" onchange="updateNavigationRule(${rule.id}, 'toScreen', this.value)">
-                                    ${!toScreen ? `<option value="">âš ï¸ ${rule.originalToScreenName || 'Tela'}</option>` : ''}
+                                    ${!toScreen ? `<option value="">⚠️ ${rule.originalToScreenName || 'Tela'}</option>` : ''}
                                     ${app.screens.map(s => `<option value="${s.id}" ${s.id === rule.toScreen ? 'selected' : ''}>${s.name}</option>`).join('')}
                                 </select>
                             ` : action === 'navigate_msg' ? `
                                 <select class="nav-sel" style="max-width:80px" onchange="updateNavigationRule(${rule.id}, 'toScreen', this.value)">
-                                    ${!toScreen ? `<option value="">âš ï¸ ${rule.originalToScreenName || 'Tela'}</option>` : ''}
+                                    ${!toScreen ? `<option value="">⚠️ ${rule.originalToScreenName || 'Tela'}</option>` : ''}
                                     ${app.screens.map(s => `<option value="${s.id}" ${s.id === rule.toScreen ? 'selected' : ''}>${s.name}</option>`).join('')}
                                 </select>
                                 <input type="text" class="nav-msg-input" id="msg_${rule.id}"
                                     value="${(rule.message || '').replace(/"/g, '&quot;')}"
-                                    placeholder="Mensagemâ€¦" maxlength="80"
+                                    placeholder="Mensagem…" maxlength="80"
                                     oninput="updateNavigationRule(${rule.id}, 'message', this.value)"
                                     onkeydown="event.stopPropagation()">
                             ` : action === 'clear' ? `
                                 <span class="nav-clear-info">Limpa todos os campos</span>
                             ` : action === 'terminate' ? `
-                                <span class="nav-clear-info">ðŸšª Encerra a sessÃ£o â€” tela em branco</span>
+                                <span class="nav-clear-info">🚪 Encerra a sessão — tela em branco</span>
                             ` : `
                                 <input type="text" class="nav-msg-input" id="msg_${rule.id}"
                                     value="${(rule.message || '').replace(/"/g, '&quot;')}"
-                                    placeholder="${action === 'clear_msg' ? 'Msg apÃ³s limparâ€¦' : 'Mensagemâ€¦'}" maxlength="80"
+                                    placeholder="${action === 'clear_msg' ? 'Msg após limpar…' : 'Mensagem…'}" maxlength="80"
                                     oninput="updateNavigationRule(${rule.id}, 'message', this.value)"
                                     onkeydown="event.stopPropagation()">
                             `}
-                            <button class="nav-del-btn" onclick="deleteNavigationRule(${rule.id})" title="Remover regra">ðŸ—‘</button>
+                            <button class="nav-del-btn" onclick="deleteNavigationRule(${rule.id})" title="Remover regra">🗑</button>
                         </div>
                     </div>
                 `;
@@ -1402,24 +1402,24 @@
             const rule = app.navigationRules.find(r => r.id === ruleId);
             if (!rule) return;
             
-            // Verificar duplicatas ao mudar tela DE, tecla, aÃ§Ã£o ou tela PARA
+            // Verificar duplicatas ao mudar tela DE, tecla, ação ou tela PARA
             if (field === 'fromScreen' || field === 'key' || field === 'action' || field === 'toScreen') {
                 const newFromScreen = field === 'fromScreen' ? parseFloat(value) : rule.fromScreen;
                 const newKey = field === 'key' ? value : rule.key;
                 const newAction = field === 'action' ? value : rule.action;
                 const newToScreen = field === 'toScreen' ? parseFloat(value) : rule.toScreen;
                 
-                // Buscar regras com mesma combinaÃ§Ã£o: fromScreen + key + action + toScreen
+                // Buscar regras com mesma combinação: fromScreen + key + action + toScreen
                 const duplicates = app.navigationRules.filter(r => 
                     r.id !== ruleId && 
                     r.fromScreen === newFromScreen && 
                     r.key === newKey &&
                     r.action === newAction &&
-                    (newAction === 'message' || r.toScreen === newToScreen) // Para message, toScreen nÃ£o importa
+                    (newAction === 'message' || r.toScreen === newToScreen) // Para message, toScreen não importa
                 );
                 
                 if (duplicates.length > 0) {
-                    showMessage('JÃ¡ existe uma regra com essa combinaÃ§Ã£o exata!', 'error');
+                    showMessage('Já existe uma regra com essa combinação exata!', 'error');
                     renderNavigationRules();
                     return;
                 }
@@ -1431,7 +1431,7 @@
                 rule[field] = value;
             }
             
-            // Se estava precisando de associaÃ§Ã£o e agora tem as telas necessÃ¡rias, remover flag
+            // Se estava precisando de associação e agora tem as telas necessárias, remover flag
             if (rule.needsMapping) {
                 const hasFrom = rule.fromScreen && rule.fromScreen !== 0;
                 const hasTo = rule.toScreen && rule.toScreen !== 0;
@@ -1444,7 +1444,7 @@
                 }
             }
             
-            // NÃ£o re-renderizar se for apenas mudanÃ§a de mensagem (para nÃ£o perder o foco)
+            // Não re-renderizar se for apenas mudança de mensagem (para não perder o foco)
             if (field !== 'message') {
                 renderNavigationRules();
             }
@@ -1475,7 +1475,7 @@
                 return;
             }
 
-            // Resetar todos os labels primeiro (padrÃ£o)
+            // Resetar todos os labels primeiro (padrão)
             resetPFKeysLabels();
 
             const pfKeys = ['ENTER', 'PF1', 'PF2', 'PF3', 'PF4', 'PF5', 'PF6', 'PF7', 'PF8', 'PF9', 'PF10', 'PF11', 'PF12'];
@@ -1488,14 +1488,14 @@
                 let fromTxt = false;
                 let fromRule = false;
                 
-                // 1Âª Prioridade: PFs do TXT
+                // 1ª Prioridade: PFs do TXT
                 if (currentScreen.pfKeys && currentScreen.pfKeys[key]) {
                     label = currentScreen.pfKeys[key];
                     fromTxt = true;
                     console.log(`[updatePFKeysLabels] ${key}: encontrado no TXT = "${label}"`);
                 }
                 
-                // 2Âª Prioridade: Regras customizadas (sobrescreve TXT)
+                // 2ª Prioridade: Regras customizadas (sobrescreve TXT)
                 const rule = app.navigationRules.find(r => 
                     r.fromScreen === currentScreen.id && r.key === key
                 );
@@ -1512,7 +1512,7 @@
                             fromTxt = false;
                             console.log(`[updatePFKeysLabels] ${key}: com destino = "${label}"`);
                         } else if (rule.label) {
-                            // Se nÃ£o hÃ¡ tela de destino mas hÃ¡ label da regra (do TXT), usar ele
+                            // Se não há tela de destino mas há label da regra (do TXT), usar ele
                             label = rule.label.substring(0, 12);
                             fromTxt = true; // Manter como TXT pois vem do arquivo original
                             console.log(`[updatePFKeysLabels] ${key}: sem destino, usando label da regra = "${label}"`);
@@ -1521,7 +1521,7 @@
                         label = (rule.message || 'MSG').substring(0, 12);
                         fromRule = true;
                         fromTxt = false;
-                        console.log(`[updatePFKeysLabels] ${key}: aÃ§Ã£o message = "${label}"`);
+                        console.log(`[updatePFKeysLabels] ${key}: ação message = "${label}"`);
                     }
                 }
                 
@@ -1548,8 +1548,8 @@
                 'PF4': 'RETURN',
                 'PF5': 'RFIND',
                 'PF6': 'RCHANGE',
-                'PF7': 'â¬† PREV',
-                'PF8': 'â¬‡ NEXT',
+                'PF7': '⬆ PREV',
+                'PF8': '⬇ NEXT',
                 'PF9': 'SWAP',
                 'PF10': 'LEFT',
                 'PF11': 'RIGHT',
@@ -1567,7 +1567,7 @@
             });
         }
 
-        // ManipulaÃ§Ã£o de Campos
+        // Manipulação de Campos
         function focusField(index) {
             if (index < 0 || index >= app.fields.length) return;
             
@@ -1595,7 +1595,7 @@
             var lbl = document.getElementById('mobileFieldLabel');
             if (lbl) {
                 var fname = field.bmsName || field.label || ('Campo ' + (index + 1));
-                lbl.textContent = fname + (field.type === 'numeric' ? ' [nÃºm]' : '');
+                lbl.textContent = fname + (field.type === 'numeric' ? ' [núm]' : '');
             }
             var mi = document.getElementById('mobileTerminalInput');
             if (mi) {
@@ -1625,7 +1625,7 @@
         function updateCursorPosition() {
             const cursor = document.getElementById('cursor');
             if (cursor) {
-                /* Posicionamento lÃ³gico direto â€” funciona com qualquer escala CSS */
+                /* Posicionamento lógico direto — funciona com qualquer escala CSS */
                 cursor.style.left = (app.cursorCol * 9)  + 'px';
                 cursor.style.top  = (app.cursorRow * 18) + 'px';
             }
@@ -1646,13 +1646,13 @@
             document.getElementById('totalScreens').textContent = app.screens.length;
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ═══════════════════════════════════════════════════════
         //  EDITOR DE LAYOUT DA TELA
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ═══════════════════════════════════════════════════════
 
         function buildScreenRawText(screen) {
-            // Retorna EXATAMENTE 24 linhas Ã— 80 colunas â€” nunca mais, nunca menos
-            // PF keys sÃ£o preservadas separadamente em app._editPFLines
+            // Retorna EXATAMENTE 24 linhas × 80 colunas — nunca mais, nunca menos
+            // PF keys são preservadas separadamente em app._editPFLines
             const lines = [];
             for (let row = 0; row < ROWS; row++) {
                 let line = '';
@@ -1665,7 +1665,7 @@
                         line += field.type === 'numeric' ? 'x' : 'z';
                     } else if (rowData) {
                         const ch = rowData[col];
-                        // Aceitar apenas caracteres Ãºnicos e imprimÃ­veis
+                        // Aceitar apenas caracteres únicos e imprimíveis
                         line += (typeof ch === 'string' && ch.length === 1 && ch !== '\n' && ch !== '\r') ? ch : ' ';
                     } else {
                         line += ' ';
@@ -1688,7 +1688,7 @@
             const col = linesArr[linesArr.length - 1].length + 1;
             const overflow = ln > 24 || col > 80;
             if (ln === 1) {
-                status.textContent = `LN: ${ln}   COL: ${col}  â›” Linha 1: destinada a mensagem do sistema`;
+                status.textContent = `LN: ${ln}   COL: ${col}  ⛔ Linha 1: destinada a mensagem do sistema`;
                 status.classList.add('overflow');
             } else {
                 status.textContent = `LN: ${ln}   COL: ${col}`;
@@ -1696,24 +1696,24 @@
             }
         }
 
-        // Mapa de substituiÃ§Ã£o: acentos/Ã§ â†’ equivalente ASCII
+        // Mapa de substituição: acentos/ç → equivalente ASCII
         const _accentMap = {
-            'Ã¡':'a','Ã ':'a','Ã¢':'a','Ã£':'a','Ã¤':'a','Ã¥':'a',
-            'Ã':'A','Ã€':'A','Ã‚':'A','Ãƒ':'A','Ã„':'A','Ã…':'A',
-            'Ã©':'e','Ã¨':'e','Ãª':'e','Ã«':'e',
-            'Ã‰':'E','Ãˆ':'E','ÃŠ':'E','Ã‹':'E',
-            'Ã­':'i','Ã¬':'i','Ã®':'i','Ã¯':'i',
-            'Ã':'I','ÃŒ':'I','ÃŽ':'I','Ã':'I',
-            'Ã³':'o','Ã²':'o','Ã´':'o','Ãµ':'o','Ã¶':'o',
-            'Ã“':'O','Ã’':'O','Ã”':'O','Ã•':'O','Ã–':'O',
-            'Ãº':'u','Ã¹':'u','Ã»':'u','Ã¼':'u',
-            'Ãš':'U','Ã™':'U','Ã›':'U','Ãœ':'U',
-            'Ã§':'c','Ã‡':'C','Ã±':'n','Ã‘':'N',
+            'á':'a','à':'a','â':'a','ã':'a','ä':'a','å':'a',
+            'Á':'A','À':'A','Â':'A','Ãƒ':'A','Ä':'A','Å':'A',
+            'é':'e','è':'e','ê':'e','ë':'e',
+            'É':'E','È':'E','Ê':'E','Ë':'E',
+            'í':'i','ì':'i','î':'i','ï':'i',
+            'Í':'I','Ì':'I','Î':'I','Ï':'I',
+            'ó':'o','ò':'o','ô':'o','õ':'o','ö':'o',
+            'Ó':'O','Ò':'O','Ô':'O','Õ':'O','Ö':'O',
+            'ú':'u','ù':'u','û':'u','ü':'u',
+            'Ú':'U','Ù':'U','Û':'U','Ü':'U',
+            'ç':'c','Ç':'C','ñ':'n','Ñ':'N',
             // Box-drawing: substituir por equivalentes ASCII seguros
-            'â•':'-','â”€':'-','â”':'-','â•Œ':'-','â•':'-','â”„':'-','â”…':'-','â”ˆ':'-','â”‰':'-',
-            'â•‘':'|','â”‚':'|','â”ƒ':'|','â•Ž':'|','â•':'|','â”†':'|','â”‡':'|','â”Š':'|','â”‹':'|',
-            'â•”':'+','â•—':'+','â•š':'+','â•':'+','â• ':'+','â•£':'+','â•¦':'+','â•©':'+','â•¬':'+',
-            'â”Œ':'+','â”':'+','â””':'+','â”˜':'+','â”œ':'+','â”¤':'+','â”¬':'+','â”´':'+','â”¼':'+'
+            '═':'-','─':'-','━':'-','╌':'-','╍':'-','┄':'-','┅':'-','┈':'-','┉':'-',
+            '║':'|','│':'|','â”ƒ':'|','╎':'|','╏':'|','┆':'|','┇':'|','┊':'|','┋':'|',
+            '╔':'+','╗':'+','╚':'+','╝':'+','╠':'+','╣':'+','╦':'+','╩':'+','╬':'+',
+            '┌':'+','┐':'+','└':'+','┘':'+','├':'+','┤':'+','┬':'+','┴':'+','┼':'+'
         };
         function _stripAccents(str) {
             return str.replace(/[^\x00-\x7F]/g, ch => _accentMap[ch] !== undefined ? _accentMap[ch] : ch);
@@ -1723,19 +1723,19 @@
             const sel = ta.selectionStart;
             let lines = ta.value.split('\n');
             let changed = false;
-            // Linha 1 (Ã­ndice 0) Ã© reservada para mensagem do sistema â€” manter sempre em branco
+            // Linha 1 (índice 0) é reservada para mensagem do sistema — manter sempre em branco
             if (lines[0] && lines[0].trim() !== '') {
                 lines[0] = ' '.repeat(lines[0].length);
                 changed = true;
-                showMessage('Linha 1: destinada a mensagem do sistema â€” nao e editavel.', 'error');
+                showMessage('Linha 1: destinada a mensagem do sistema — nao e editavel.', 'error');
             }
-            // Remover acentos e Ã§ de todas as linhas
+            // Remover acentos e ç de todas as linhas
             for (let i = 0; i < lines.length; i++) {
                 const stripped = _stripAccents(lines[i]);
                 if (stripped !== lines[i]) {
                     lines[i] = stripped;
                     changed = true;
-                    if (i > 0) showMessage('Caracteres especiais (acentos, C-cedilha, box-drawing) nao sao permitidos â€” convertidos para ASCII.', 'error');
+                    if (i > 0) showMessage('Caracteres especiais (acentos, C-cedilha, box-drawing) nao sao permitidos — convertidos para ASCII.', 'error');
                 }
             }
             // Truncar cada linha a 80 colunas
@@ -1779,25 +1779,25 @@
 
             const ta = document.getElementById('screenEditorTextArea');
             ta.value = buildScreenRawText(screen);
-            // Aplicar enforcement IMEDIATAMENTE ao carregar (nÃ£o apenas no evento input)
+            // Aplicar enforcement IMEDIATAMENTE ao carregar (não apenas no evento input)
             _editorEnforce(ta);
 
             document.getElementById('screenEditorOverlay').style.display = 'flex';
 
-            // Atualizar botÃ£o
+            // Atualizar botão
             document.getElementById('btnEditScreenIcon').textContent = '✅';
-            document.getElementById('btnEditScreenLabel').textContent = ' Fechar EdiÃ§Ã£o';
+            document.getElementById('btnEditScreenLabel').textContent = ' Fechar Edição';
             document.getElementById('btnEditScreen').classList.add('active');
 
             document.getElementById('terminalWrap').classList.add('edit-mode');
 
             app.editMode = true;
 
-            // Listeners: tracking de posiÃ§Ã£o + enforcement de limites
+            // Listeners: tracking de posição + enforcement de limites
             ta._editorInput = function() {
                 _editorEnforce(ta);
                 _editorUpdateStatus(ta);
-                // AtualizaÃ§Ã£o em tempo real: parsear conteÃºdo atual e regenerar BMS/COBOL
+                // Atualização em tempo real: parsear conteúdo atual e regenerar BMS/COBOL
                 if (app.currentScreenIndex >= 0) {
                     const screen = app.screens[app.currentScreenIndex];
                     let previewLines = ta.value.split('\n').slice(0, 24).map(l => l.slice(0, 80));
@@ -1810,7 +1810,7 @@
                     const prevBmsImp    = screen.bmsImported;
                     const prevBmsHdr    = screen._bmsHeader;
                     screen.content = previewContent;
-                    // Sem bmsSource: generateBMSCode serÃ¡ usado no preview
+                    // Sem bmsSource: generateBMSCode será usado no preview
                     screen.bmsSource = null;
                     screen.parseContent();
                     // Restaurar flags e bmsVariable dos campos originais para o preview
@@ -1847,7 +1847,7 @@
 
             _editorUpdateStatus(ta);
             ta.focus();
-            showMessage('Modo ediÃ§Ã£o â€” 24 li Ã— 80 col | feche para aplicar', 'info');
+            showMessage('Modo edição — 24 li × 80 col | feche para aplicar', 'info');
         }
 
         function closeScreenEditor(apply) {
@@ -1865,7 +1865,7 @@
             document.getElementById('screenEditorOverlay').style.display = 'none';
             document.getElementById('terminalWrap').classList.remove('edit-mode');
 
-            // Restaurar botÃ£o
+            // Restaurar botão
             document.getElementById('btnEditScreenIcon').textContent = '✏️';
             document.getElementById('btnEditScreenLabel').textContent = ' Editar';
             document.getElementById('btnEditScreen').classList.remove('active');
@@ -1875,18 +1875,18 @@
             if (apply && app.currentScreenIndex >= 0) {
                 const screen = app.screens[app.currentScreenIndex];
 
-                // Garantir mÃ¡x. 24 linhas Ã— 80 cols
+                // Garantir máx. 24 linhas × 80 cols
                 let screenLines = ta.value.split('\n').slice(0, 24);
                 screenLines = screenLines.map(l => l.slice(0, 80));
 
-                // Recompor conteÃºdo: 24 linhas da tela + linha de PF keys preservada
+                // Recompor conteúdo: 24 linhas da tela + linha de PF keys preservada
                 let newContent = screenLines.join('\n');
                 if (app._editPFLines) newContent += '\n' + app._editPFLines;
 
                 screen.content = newContent;
 
-                // Salvar mapeamento posiÃ§Ã£o â†’ bmsVariable dos campos originais
-                // para reutilizar os nomes apÃ³s o re-parse (importados ou definidos manualmente)
+                // Salvar mapeamento posição → bmsVariable dos campos originais
+                // para reutilizar os nomes após o re-parse (importados ou definidos manualmente)
                 const bmsVarByPos = {};
                 const wasBmsImported = !!screen.bmsImported;
                 const savedBmsHeader = screen._bmsHeader || null;
@@ -1894,12 +1894,12 @@
                     if (f.bmsVariable) bmsVarByPos[f.row + ':' + f.col] = f.bmsVariable;
                 });
 
-                // Descartar bmsSource: apÃ³s ediÃ§Ã£o o BMS serÃ¡ regenerado via generateBMSCode,
-                // mas com os nomes originais restaurados onde a posiÃ§Ã£o coincide
+                // Descartar bmsSource: após edição o BMS será regenerado via generateBMSCode,
+                // mas com os nomes originais restaurados onde a posição coincide
                 screen.bmsSource = null;
                 screen.parseContent();
 
-                // Restaurar bmsVariable nos campos que permaneceram na mesma posiÃ§Ã£o
+                // Restaurar bmsVariable nos campos que permaneceram na mesma posição
                 if (Object.keys(bmsVarByPos).length > 0) {
                     screen.fields.forEach(function(f) {
                         const key = f.row + ':' + f.col;
@@ -1907,7 +1907,7 @@
                     });
                 }
 
-                // Restaurar flags de origem BMS apÃ³s re-parse
+                // Restaurar flags de origem BMS após re-parse
                 if (wasBmsImported) {
                     screen.bmsImported = true;
                     if (savedBmsHeader) screen._bmsHeader = savedBmsHeader;
@@ -1943,10 +1943,10 @@
             }
         }
 
-        // ManipulaÃ§Ã£o de Teclado
+        // Manipulação de Teclado
         function handleKeyPress(e) {
-            // Ignorar eventos de teclado se o modo de ediÃ§Ã£o da tela estiver ativo
-            // ExceÃ§Ã£o: deixar Ctrl+Z / Ctrl+Y / Ctrl+A / Ctrl+C / Ctrl+V agir
+            // Ignorar eventos de teclado se o modo de edição da tela estiver ativo
+            // Exceção: deixar Ctrl+Z / Ctrl+Y / Ctrl+A / Ctrl+C / Ctrl+V agir
             // normalmente no textarea (undo/redo/select/copy/paste nativos do browser)
             if (app.editMode) {
                 if (e.ctrlKey || e.metaKey) return; // passa para o textarea
@@ -1958,7 +1958,7 @@
                 return;
             }
 
-            // Ignorar eventos de teclado se estiver digitando no painel de validaÃ§Ã£o
+            // Ignorar eventos de teclado se estiver digitando no painel de validação
             const validationPanel = document.getElementById('validationPanel');
             const isTypingInValidation = validationPanel && 
                 validationPanel.contains(e.target) && 
@@ -1973,10 +1973,10 @@
             const field = app.fields[app.currentFieldIndex];
             if (!field) return;
             
-            // Bloquear ediÃ§Ã£o no campo MENSAGEM (somente leitura)
+            // Bloquear edição no campo MENSAGEM (somente leitura)
             const isMessageField = field.label === 'MENSAGEM' || field.row === 0;
             
-            // NavegaÃ§Ã£o entre campos
+            // Navegação entre campos
             if (e.key === 'Tab') {
                 e.preventDefault();
                 if (e.shiftKey) {
@@ -1985,7 +1985,7 @@
                     focusField((app.currentFieldIndex + 1) % app.fields.length);
                 }
             }
-            // NavegaÃ§Ã£o entre telas
+            // Navegação entre telas
             else if (e.key === 'PageDown' || (e.key === 'F8' && !e.shiftKey)) {
                 e.preventDefault();
                 if (app.validationKeys.includes('PF8') && !validateAllFields()) return;
@@ -1996,7 +1996,7 @@
                 if (app.validationKeys.includes('PF7') && !validateAllFields()) return;
                 applyNavigationRule('PF7');
             }
-            // Teclas de funÃ§Ã£o
+            // Teclas de função
             else if (e.key === 'F1') {
                 e.preventDefault();
                 if (app.validationKeys.includes('PF1') && !validateAllFields()) return;
@@ -2062,7 +2062,7 @@
                     submitData();
                 }
             }
-            // NavegaÃ§Ã£o dentro do campo
+            // Navegação dentro do campo
             else if (e.key === 'ArrowLeft' && app.cursorCol > field.col) {
                 app.cursorCol--;
                 updateCursorPosition();
@@ -2071,10 +2071,10 @@
                 app.cursorCol++;
                 updateCursorPosition();
             }
-            // EdiÃ§Ã£o
+            // Edição
             else if (e.key === 'Backspace') {
                 e.preventDefault();
-                // Bloquear ediÃ§Ã£o no campo MENSAGEM
+                // Bloquear edição no campo MENSAGEM
                 if (isMessageField) return;
                 
                 const pos = app.cursorCol - field.col;
@@ -2087,7 +2087,7 @@
             }
             else if (e.key === 'Delete') {
                 e.preventDefault();
-                // Bloquear ediÃ§Ã£o no campo MENSAGEM
+                // Bloquear edição no campo MENSAGEM
                 if (isMessageField) return;
                 
                 const pos = app.cursorCol - field.col;
@@ -2098,11 +2098,11 @@
             else if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
                 e.preventDefault();
                 
-                // Bloquear ediÃ§Ã£o no campo MENSAGEM
+                // Bloquear edição no campo MENSAGEM
                 if (isMessageField) return;
                 
                 if (field.type === 'numeric' && !/\d/.test(e.key)) {
-                    showMessage('Este campo aceita apenas nÃºmeros!', 'error');
+                    showMessage('Este campo aceita apenas números!', 'error');
                     animateFieldError(field);
                     return;
                 }
@@ -2133,7 +2133,7 @@
             // Validar campos APENAS se a tecla estiver configurada para validar
             if (app.validationKeys.includes(key)) {
                 if (!validateAllFields()) {
-                    return; // Bloqueia a aÃ§Ã£o se houver erro de validaÃ§Ã£o
+                    return; // Bloqueia a ação se houver erro de validação
                 }
             }
             
@@ -2175,7 +2175,7 @@
                     applyNavigationRule('PF12');
                     break;
                 case 'ENTER':
-                    // Se passou na validaÃ§Ã£o, executar regra ou submit
+                    // Se passou na validação, executar regra ou submit
                     if (!applyNavigationRule('ENTER')) {
                         submitData();
                     }
@@ -2219,7 +2219,7 @@
 
         function exitScreen() {
             if (confirm('Deseja sair?')) {
-                showMessage('SessÃ£o encerrada', 'success');
+                showMessage('Sessão encerrada', 'success');
                 setTimeout(() => {
                     initTerminal();
                     app.currentScreenIndex = -1;
@@ -2253,20 +2253,20 @@
                 console.log('Dados submetidos:', data);
                 showMessage('Dados processados com sucesso!', 'success');
                 
-                // Navegar para prÃ³xima tela se houver regra
+                // Navegar para próxima tela se houver regra
                 checkNavigationRules();
             }, 1500);
         }
 
         function checkNavigationRules() {
-            // Verificar se hÃ¡ regra de navegaÃ§Ã£o para a tela atual
+            // Verificar se há regra de navegação para a tela atual
             const currentScreen = app.screens[app.currentScreenIndex];
             if (!currentScreen) return;
 
             const rule = app.navigationRules.find(r => r.id === currentScreen.id && r.key === 'ENTER');
             
             if (rule) {
-                // Encontrar Ã­ndice da tela de destino
+                // Encontrar índice da tela de destino
                 const targetIndex = app.screens.findIndex(s => s.id === rule.toScreen);
                 if (targetIndex !== -1) {
                     setTimeout(() => {
@@ -2276,7 +2276,7 @@
                 }
             }
 
-            // Se nÃ£o hÃ¡ regra especÃ­fica e hÃ¡ mais telas, vai para prÃ³xima
+            // Se não há regra específica e há mais telas, vai para próxima
             if (app.screens.length > 1) {
                 setTimeout(() => {
                     nextScreen();
@@ -2296,26 +2296,26 @@
                 r.fromScreen === currentScreen.id && r.key === key
             );
             
-            // Verificar se a tecla estÃ¡ definida no TXT da tela
+            // Verificar se a tecla está definida no TXT da tela
             const pfKeyFromTXT = currentScreen.pfKeys && currentScreen.pfKeys[key];
             
-            // Se nÃ£o tem regra customizada e nÃ£o tem no TXT, mostrar TECLA INVALIDA
+            // Se não tem regra customizada e não tem no TXT, mostrar TECLA INVALIDA
             if (rules.length === 0 && !pfKeyFromTXT) {
                 displayMessageOnFirstLine('TECLA INVALIDA');
-                return true; // Consumir a tecla para nÃ£o executar comportamento padrÃ£o
+                return true; // Consumir a tecla para não executar comportamento padrão
             }
             
-            // Se nÃ£o tem regra customizada mas tem no TXT, executar aÃ§Ã£o do TXT
+            // Se não tem regra customizada mas tem no TXT, executar ação do TXT
             if (rules.length === 0 && pfKeyFromTXT) {
                 executePFKeyAction(key, pfKeyFromTXT);
                 return true;
             }
             
-            // Verificar se alguma regra precisa de associaÃ§Ã£o
+            // Verificar se alguma regra precisa de associação
             const unmappedRules = rules.filter(r => r.needsMapping);
             if (unmappedRules.length > 0) {
                 displayMessageOnFirstLine('REGRA PRECISA DE ASSOCIACAO - ABRA PAINEL DE NAVEGACAO');
-                return true; // Consumir a tecla para nÃ£o executar comportamento padrÃ£o
+                return true; // Consumir a tecla para não executar comportamento padrão
             }
             
             // Separar regras por tipo
@@ -2326,7 +2326,7 @@
             const clearMsgRule = rules.find(r => r.action === 'clear_msg');
             const terminateRule = rules.find(r => r.action === 'terminate');
 
-            // Encerrar sessÃ£o: limpa tudo e mostra tela em branco
+            // Encerrar sessão: limpa tudo e mostra tela em branco
             if (terminateRule) {
                 app.fields.forEach(f => { f.value = Array(f.length).fill(' '); });
                 initTerminal();
@@ -2339,20 +2339,20 @@
 
             let navigated = false;
             
-            // 1Âº: Executar limpeza se houver
+            // 1º: Executar limpeza se houver
             if (clearRule) {
                 clearAllFields();
                 displayMessageOnFirstLine('CAMPOS LIMPOS');
             }
             
-            // 1Âº: Executar limpeza com mensagem se houver
+            // 1º: Executar limpeza com mensagem se houver
             if (clearMsgRule) {
                 clearAllFields();
                 const message = clearMsgRule.message || 'CAMPOS LIMPOS';
                 displayMessageOnFirstLine(message);
             }
             
-            // 2Âº: Executar navegaÃ§Ã£o se houver (navigate ou navigate_msg)
+            // 2º: Executar navegação se houver (navigate ou navigate_msg)
             const ruleToNavigate = navMsgRule || navRule;
             if (ruleToNavigate) {
                 const targetIndex = app.screens.findIndex(s => s.id === ruleToNavigate.toScreen);
@@ -2369,7 +2369,7 @@
                 }
             }
             
-            // 2Âº: Executar mensagem pura se houver (message sem navegaÃ§Ã£o)
+            // 2º: Executar mensagem pura se houver (message sem navegação)
             if (msgRule) {
                 const message = msgRule.message || 'Tecla configurada';
                 // Pequeno delay para garantir que a tela foi carregada
@@ -2382,10 +2382,10 @@
         }
 
         function executePFKeyAction(key, pfKeyLabel) {
-            // Executar aÃ§Ã£o baseada no label do PF key do TXT
+            // Executar ação baseada no label do PF key do TXT
             const label = pfKeyLabel.toUpperCase().trim();
             
-            // AÃ§Ãµes comuns do mainframe
+            // Ações comuns do mainframe
             if (label.includes('EXIT') || label.includes('SAIR')) {
                 exitScreen();
             } else if (label.includes('CLEAR') || label.includes('LIMPAR')) {
@@ -2436,14 +2436,14 @@
             });
         }
 
-        // ValidaÃ§Ã£o de Campos
+        // Validação de Campos
         function configureFieldValidation(fieldIndex, validationType, params, message) {
             if (fieldIndex < 0 || fieldIndex >= app.fields.length) return;
             
             const field = app.fields[fieldIndex];
             field.addValidation(validationType, params, message);
             
-            showMessage('ValidaÃ§Ã£o configurada para o campo!', 'success');
+            showMessage('Validação configurada para o campo!', 'success');
         }
 
         function validateAllFields() {
@@ -2494,7 +2494,7 @@
             return true;
         }
 
-        // UtilitÃ¡rios
+        // Utilitários
         function showMessage(text, type = 'info') {
             const msg = document.getElementById('statusMessage');
             msg.textContent = text;
@@ -2519,7 +2519,7 @@
             document.getElementById('time').textContent = time;
         }
 
-        // Painel de ValidaÃ§Ã£o de Campos
+        // Painel de Validação de Campos
         let selectedFieldIndex = -1;
 
         function toggleValidationPanel() {
@@ -2547,7 +2547,7 @@
             });
             
             const keys = app.validationKeys.length > 0 ? app.validationKeys.join(', ') : 'Nenhuma';
-            console.log('Teclas de validaÃ§Ã£o configuradas:', keys);
+            console.log('Teclas de validação configuradas:', keys);
             updateCodePanel(true);
         }
 
@@ -2561,7 +2561,7 @@
 
             container.innerHTML = app.fields.map((field, index) => {
                 const displayLabel = field.label || `Campo ${index + 1}`;
-                const bmsVar = field.bmsVariable ? `BMS: ${field.bmsVariable}` : 'Sem variÃ¡vel BMS';
+                const bmsVar = field.bmsVariable ? `BMS: ${field.bmsVariable}` : 'Sem variável BMS';
                 return `
                 <div class="field-item-val ${selectedFieldIndex === index ? 'selected' : ''}" 
                      onclick="selectFieldForValidation(${index})">
@@ -2571,15 +2571,15 @@
                                 title="Editar nome do campo">✏️</button>
                     </div>
                     <div class="field-details">
-                        Tipo: ${field.type === 'numeric' ? 'NumÃ©rico' : 'AlfanumÃ©rico'} | 
+                        Tipo: ${field.type === 'numeric' ? 'Numérico' : 'Alfanumérico'} | 
                         Tamanho: ${field.length} | 
-                        PosiÃ§Ã£o: (${field.row}, ${field.col})
+                        Posição: (${field.row}, ${field.col})
                     </div>
                     <div class="field-details" style="margin-top: 3px; color: ${field.bmsVariable ? 'var(--primary-color)' : 'var(--text-light)'}; font-weight: ${field.bmsVariable ? '600' : '400'};">
                         ${bmsVar}
                     </div>
                     <div class="field-details" style="margin-top: 3px; color: ${field.validationRules.length > 0 ? 'var(--primary-color)' : 'var(--text-light)'}; font-weight: ${field.validationRules.length > 0 ? '600' : '400'};">
-                        ${field.validationRules.length} validaÃ§Ã£o(Ãµes) ${field.isRequired ? '| ObrigatÃ³rio' : ''}
+                        ${field.validationRules.length} validação(ões) ${field.isRequired ? '| Obrigatório' : ''}
                     </div>
                 </div>
             `}).join('');
@@ -2616,14 +2616,14 @@
             const container = document.getElementById('fieldConfigContent');
             
             if (selectedFieldIndex < 0 || selectedFieldIndex >= app.fields.length) {
-                container.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 20px;">Selecione um campo Ã  esquerda</div>';
+                container.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 20px;">Selecione um campo à esquerda</div>';
                 return;
             }
 
             const field = app.fields[selectedFieldIndex];
             const displayLabel = field.label || `Campo ${selectedFieldIndex + 1}`;
 
-            // Criar lista de opÃ§Ãµes de campos disponÃ­veis
+            // Criar lista de opções de campos disponíveis
             const fieldOptions = app.fields.map((f, idx) => {
                 const label = f.label || `Campo ${idx + 1}`;
                 const bmsVar = f.bmsVariable || '';
@@ -2633,24 +2633,24 @@
             // Criar lista para copiar de outro campo
             const copyOptions = '<option value="">-- Copiar de outro campo --</option>' + 
                 app.fields.map((f, idx) => {
-                    if (idx === selectedFieldIndex) return ''; // NÃ£o mostrar o campo atual
+                    if (idx === selectedFieldIndex) return ''; // Não mostrar o campo atual
                     const label = f.label || `Campo ${idx + 1}`;
                     const bmsVar = f.bmsVariable || '';
-                    return `<option value="${idx}">${label} ${bmsVar ? 'â†’ ' + bmsVar : ''}</option>`;
+                    return `<option value="${idx}">${label} ${bmsVar ? '→ ' + bmsVar : ''}</option>`;
                 }).join('');
 
             container.innerHTML = `
                 <div class="field-info-header">
                     <h4 class="field-title">${displayLabel}</h4>
                     <div class="field-metadata">
-                        <span class="field-meta-item">ðŸ“ Linha ${field.row + 1}, Coluna ${field.col + 1}</span>
-                        <span class="field-meta-item">ðŸ“ Tamanho: ${field.length}</span>
-                        <span class="field-meta-item">ðŸ”¤ ${field.type === 'numeric' ? 'NumÃ©rico' : 'AlfanumÃ©rico'}</span>
+                        <span class="field-meta-item">📍 Linha ${field.row + 1}, Coluna ${field.col + 1}</span>
+                        <span class="field-meta-item">📏 Tamanho: ${field.length}</span>
+                        <span class="field-meta-item">🔤 ${field.type === 'numeric' ? 'Numérico' : 'Alfanumérico'}</span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>ðŸ“‹ Selecionar Campo da Tela</label>
+                    <label>📋 Selecionar Campo da Tela</label>
                     <select id="fieldSelector" onchange="selectFieldForValidation(parseInt(this.value))" 
                             class="modern-select">
                         ${fieldOptions}
@@ -2658,7 +2658,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>ðŸ·ï¸ Nome da VariÃ¡vel BMS</label>
+                    <label>🏷️ Nome da Variável BMS</label>
                     <input type="text" id="bmsVariableName" value="${field.bmsVariable || ''}" 
                            placeholder="Ex: NOMEI, CPFI, TELEFONE" 
                            onchange="updateBMSVariable()" 
@@ -2666,18 +2666,18 @@
                            style="text-transform: uppercase;" 
                            maxlength="30">
                     <div class="field-hint">
-                        Edite como preferir - o valor inicial Ã© apenas uma sugestÃ£o
+                        Edite como preferir - o valor inicial é apenas uma sugestão
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>ðŸ”„ Copiar dados de outro campo</label>
+                    <label>🔄 Copiar dados de outro campo</label>
                     <select id="copyFromField" onchange="copyFieldData(parseInt(this.value))" 
                             class="modern-select">
                         ${copyOptions}
                     </select>
                     <div class="field-hint">
-                        Copiar label e variÃ¡vel BMS de outro campo
+                        Copiar label e variável BMS de outro campo
                     </div>
                 </div>
 
@@ -2685,21 +2685,21 @@
                     <label>
                         <input type="checkbox" id="fieldRequired" ${field.isRequired ? 'checked' : ''}
                                onchange="toggleFieldRequired()">
-                        Campo ObrigatÃ³rio
+                        Campo Obrigatório
                     </label>
                 </div>
 
                 <div class="bms-attributes-section">
-                    <div class="bms-attr-header">ðŸŽ¨ Atributos BMS</div>
+                    <div class="bms-attr-header">🎨 Atributos BMS</div>
 
                     <div class="bms-attr-group">
-                        <div class="bms-attr-title">ProteÃ§Ã£o (escolha 1)</div>
+                        <div class="bms-attr-title">Proteção (escolha 1)</div>
                         <label class="bms-attr-opt">
                             <input type="checkbox" class="bmsProtection" value="UNPROT"
                                    ${field.bmsAttributes.protection === 'UNPROT' ? 'checked' : ''}
                                    onchange="updateBMSAttributes(this)">
                             <span class="bms-attr-key">UNPROT</span>
-                            <span class="bms-attr-desc">Campo editÃ¡vel</span>
+                            <span class="bms-attr-desc">Campo editável</span>
                         </label>
                         <label class="bms-attr-opt">
                             <input type="checkbox" class="bmsProtection" value="PROT"
@@ -2718,20 +2718,20 @@
                     </div>
 
                     <div class="bms-attr-group">
-                        <div class="bms-attr-title">Tipo de variÃ¡vel (escolha 1)</div>
+                        <div class="bms-attr-title">Tipo de variável (escolha 1)</div>
                         <label class="bms-attr-opt">
                             <input type="checkbox" class="bmsType" value="NUM"
                                    ${field.bmsAttributes.type === 'NUM' ? 'checked' : ''}
                                    onchange="updateBMSAttributes(this)">
                             <span class="bms-attr-key">NUM</span>
-                            <span class="bms-attr-desc">NumÃ©rico editÃ¡vel</span>
+                            <span class="bms-attr-desc">Numérico editável</span>
                         </label>
                         <label class="bms-attr-opt">
                             <input type="checkbox" class="bmsType" value="NORM"
                                    ${field.bmsAttributes.type === 'NORM' ? 'checked' : ''}
                                    onchange="updateBMSAttributes(this)">
                             <span class="bms-attr-key">NORM</span>
-                            <span class="bms-attr-desc">AlfanumÃ©rico normal</span>
+                            <span class="bms-attr-desc">Alfanumérico normal</span>
                         </label>
                     </div>
 
@@ -2754,7 +2754,7 @@
                     </div>
 
                     <div class="bms-attr-group">
-                        <div class="bms-attr-title">Extras (mÃºltipla escolha)</div>
+                        <div class="bms-attr-title">Extras (múltipla escolha)</div>
                         <label class="bms-attr-opt">
                             <input type="checkbox" id="bmsIC"
                                    ${field.bmsAttributes.ic ? 'checked' : ''}
@@ -2778,44 +2778,44 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Tipo de ValidaÃ§Ã£o</label>
+                    <label>Tipo de Validação</label>
                     <select id="validationType">
                         <option value="">Selecione...</option>
-                        <option value="minLength">Tamanho MÃ­nimo</option>
-                        <option value="maxLength">Tamanho MÃ¡ximo</option>
+                        <option value="minLength">Tamanho Mínimo</option>
+                        <option value="maxLength">Tamanho Máximo</option>
                         <option value="exactLength">Tamanho Exato</option>
-                        <option value="numeric">NumÃ©rico (Apenas NÃºmeros)</option>
-                        <option value="alpha">AlfabÃ©tico (Apenas Letras)</option>
-                        <option value="alphanumeric">AlfanumÃ©rico (Letras e NÃºmeros)</option>
-                        <option value="notZeros">NÃ£o pode ser apenas Zeros</option>
-                        <option value="notSpaces">NÃ£o pode ser apenas EspaÃ§os</option>
+                        <option value="numeric">Numérico (Apenas Números)</option>
+                        <option value="alpha">Alfabético (Apenas Letras)</option>
+                        <option value="alphanumeric">Alfanumérico (Letras e Números)</option>
+                        <option value="notZeros">Não pode ser apenas Zeros</option>
+                        <option value="notSpaces">Não pode ser apenas Espaços</option>
                         <option value="email">Email</option>
                         <option value="cpf">CPF</option>
                         <option value="cnpj">CNPJ</option>
                         <option value="phone">Telefone</option>
                         <option value="date">Data (DD/MM/AAAA)</option>
-                        <option value="pattern">ExpressÃ£o Regular</option>
+                        <option value="pattern">Expressão Regular</option>
                     </select>
                 </div>
 
                 <div class="form-group" id="paramGroup" style="display: none;">
-                    <label id="paramLabel">ParÃ¢metro</label>
-                    <input type="text" id="validationParam" placeholder="Digite o parÃ¢metro">
+                    <label id="paramLabel">Parâmetro</label>
+                    <input type="text" id="validationParam" placeholder="Digite o parâmetro">
                 </div>
 
                 <div class="form-group">
                     <label>Mensagem de Erro</label>
-                    <input type="text" id="validationMessage" placeholder="Ex: Campo invÃ¡lido" maxlength="80">
+                    <input type="text" id="validationMessage" placeholder="Ex: Campo inválido" maxlength="80">
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn" onclick="addFieldValidation()">Adicionar ValidaÃ§Ã£o</button>
+                    <button class="btn" onclick="addFieldValidation()">Adicionar Validação</button>
                     <button class="btn danger" onclick="clearFieldValidations()">Limpar Todas</button>
                 </div>
 
                 <div class="validation-rules-list">
                     <h4 class="validation-rules-title">
-                        ðŸ“‹ ValidaÃ§Ãµes Configuradas (${field.validationRules.length})
+                        📋 Validações Configuradas (${field.validationRules.length})
                     </h4>
                     <div id="rulesListContainer" class="rules-container">
                         ${renderValidationRulesList(field)}
@@ -2823,7 +2823,7 @@
                 </div>
             `;
 
-            // Setup event listener para mostrar/ocultar campo de parÃ¢metro
+            // Setup event listener para mostrar/ocultar campo de parâmetro
             document.getElementById('validationType').addEventListener('change', function() {
                 const paramGroup = document.getElementById('paramGroup');
                 const paramLabel = document.getElementById('paramLabel');
@@ -2831,22 +2831,22 @@
                 
                 if (value === 'minLength') {
                     paramGroup.style.display = 'block';
-                    paramLabel.textContent = 'Tamanho MÃ­nimo';
+                    paramLabel.textContent = 'Tamanho Mínimo';
                 } else if (value === 'maxLength') {
                     paramGroup.style.display = 'block';
-                    paramLabel.textContent = 'Tamanho MÃ¡ximo';
+                    paramLabel.textContent = 'Tamanho Máximo';
                 } else if (value === 'exactLength') {
                     paramGroup.style.display = 'block';
                     paramLabel.textContent = 'Tamanho Exato';
                 } else if (value === 'pattern') {
                     paramGroup.style.display = 'block';
-                    paramLabel.textContent = 'ExpressÃ£o Regular (regex)';
+                    paramLabel.textContent = 'Expressão Regular (regex)';
                 } else {
                     paramGroup.style.display = 'none';
                 }
             });
 
-            // Adicionar listener de Enter nos campos de validaÃ§Ã£o
+            // Adicionar listener de Enter nos campos de validação
             const validationMessage = document.getElementById('validationMessage');
             const validationParam = document.getElementById('validationParam');
             
@@ -2863,7 +2863,7 @@
 
         function renderValidationRulesList(field) {
             if (field.validationRules.length === 0) {
-                return '<div style="text-align: center; opacity: 0.5; padding: 10px;">Nenhuma validaÃ§Ã£o configurada</div>';
+                return '<div style="text-align: center; opacity: 0.5; padding: 10px;">Nenhuma validação configurada</div>';
             }
 
             return field.validationRules.map((rule, index) => {
@@ -2883,8 +2883,8 @@
                         <div class="rule-message">${rule.message}</div>
                     </div>
                     <div class="rule-actions">
-                        <button class="btn btn-small" onclick="editFieldValidation(${index})" title="Editar validaÃ§Ã£o">✏️</button>
-                        <button class="btn btn-small danger" onclick="removeFieldValidation(${index})" title="Remover validaÃ§Ã£o">ðŸ—‘ï¸</button>
+                        <button class="btn btn-small" onclick="editFieldValidation(${index})" title="Editar validação">✏️</button>
+                        <button class="btn btn-small danger" onclick="removeFieldValidation(${index})" title="Remover validação">🗑️</button>
                     </div>
                 </div>
             `}).join('');
@@ -2892,20 +2892,20 @@
 
         function getValidationTypeName(type) {
             const names = {
-                'minLength': 'Tamanho MÃ­nimo',
-                'maxLength': 'Tamanho MÃ¡ximo',
+                'minLength': 'Tamanho Mínimo',
+                'maxLength': 'Tamanho Máximo',
                 'exactLength': 'Tamanho Exato',
-                'numeric': 'NumÃ©rico',
-                'alpha': 'AlfabÃ©tico',
-                'alphanumeric': 'AlfanumÃ©rico',
-                'notZeros': 'NÃ£o pode ser Zeros',
-                'notSpaces': 'NÃ£o pode ser EspaÃ§os',
+                'numeric': 'Numérico',
+                'alpha': 'Alfabético',
+                'alphanumeric': 'Alfanumérico',
+                'notZeros': 'Não pode ser Zeros',
+                'notSpaces': 'Não pode ser Espaços',
                 'email': 'Email',
                 'cpf': 'CPF',
                 'cnpj': 'CNPJ',
                 'phone': 'Telefone',
                 'date': 'Data',
-                'pattern': 'PadrÃ£o (Regex)'
+                'pattern': 'Padrão (Regex)'
             };
             return names[type] || type;
         }
@@ -2914,7 +2914,7 @@
             const field = app.fields[selectedFieldIndex];
             field.isRequired = document.getElementById('fieldRequired').checked;
             renderFieldsList();
-            showMessage('Campo ' + (field.isRequired ? 'marcado como obrigatÃ³rio' : 'nÃ£o Ã© mais obrigatÃ³rio'), 'success');
+            showMessage('Campo ' + (field.isRequired ? 'marcado como obrigatório' : 'não é mais obrigatório'), 'success');
             updateCodePanel();
         }
 
@@ -2928,7 +2928,7 @@
             renderFieldsList();
             
             if (field.bmsVariable) {
-                showMessage(`VariÃ¡vel BMS definida: ${field.bmsVariable}`, 'success');
+                showMessage(`Variável BMS definida: ${field.bmsVariable}`, 'success');
             }
             updateCodePanel();
         }
@@ -2936,7 +2936,7 @@
         function getBMSAttrString(field) {
             const attrs = [];
             
-            // ProteÃ§Ã£o
+            // Proteção
             if (field.bmsAttributes.protection) {
                 attrs.push(field.bmsAttributes.protection);
             }
@@ -2946,7 +2946,7 @@
                 attrs.push(field.bmsAttributes.type);
             }
             
-            // Intensidade (BRT, DRK - NORM jÃ¡ foi adicionado em type se aplicÃ¡vel)
+            // Intensidade (BRT, DRK - NORM já foi adicionado em type se aplicável)
             if (field.bmsAttributes.intensity && field.bmsAttributes.intensity !== 'NORM') {
                 attrs.push(field.bmsAttributes.intensity);
             }
@@ -2966,17 +2966,17 @@
                 attrs.push('ASKIP');
             }
             
-            // Se nÃ£o tem nenhum atributo, retorna NORM como padrÃ£o
+            // Se não tem nenhum atributo, retorna NORM como padrão
             if (attrs.length === 0) {
                 return 'NORM';
             }
             
-            // Se sÃ³ tem um atributo, retorna sem parÃªnteses
+            // Se só tem um atributo, retorna sem parênteses
             if (attrs.length === 1) {
                 return attrs[0];
             }
             
-            // MÃºltiplos atributos, retorna com parÃªnteses
+            // Múltiplos atributos, retorna com parênteses
             return `(${attrs.join(',')})`;
         }
 
@@ -2985,7 +2985,7 @@
             
             const field = app.fields[selectedFieldIndex];
             
-            // Se clicou em um checkbox de proteÃ§Ã£o, desmarcar os outros do MESMO grupo
+            // Se clicou em um checkbox de proteção, desmarcar os outros do MESMO grupo
             if (clickedElement && clickedElement.classList.contains('bmsProtection')) {
                 document.querySelectorAll('input.bmsProtection').forEach(cb => {
                     if (cb !== clickedElement) cb.checked = false;
@@ -3006,18 +3006,18 @@
                 });
             }
             
-            // NÃƒO desmarca nada entre grupos diferentes - cada grupo Ã© independente
+            // NÃƒO desmarca nada entre grupos diferentes - cada grupo é independente
             
             // Construir preview com TODOS os selecionados
             const attrs = [];
             
-            // ProteÃ§Ã£o
+            // Proteção
             const protectionCheckbox = document.querySelector('input.bmsProtection:checked');
             if (protectionCheckbox) {
                 attrs.push(protectionCheckbox.value);
             }
             
-            // Tipo de variÃ¡vel
+            // Tipo de variável
             const typeCheckbox = document.querySelector('input.bmsType:checked');
             if (typeCheckbox) {
                 attrs.push(typeCheckbox.value);
@@ -3083,7 +3083,7 @@
             const targetField = app.fields[selectedFieldIndex];
             const sourceField = app.fields[sourceIndex];
             
-            // Copiar apenas variÃ¡vel BMS (label Ã© somente leitura)
+            // Copiar apenas variável BMS (label é somente leitura)
             targetField.bmsVariable = sourceField.bmsVariable;
             
             // Atualizar interface
@@ -3093,7 +3093,7 @@
             // Reset dropdown
             document.getElementById('copyFromField').value = '';
             
-            showMessage(`VariÃ¡vel BMS copiada: ${sourceField.bmsVariable || '(vazio)'}`, 'success');
+            showMessage(`Variável BMS copiada: ${sourceField.bmsVariable || '(vazio)'}`, 'success');
             updateCodePanel();
         }
 
@@ -3104,7 +3104,7 @@
             const paramInput = document.getElementById('validationParam');
 
             if (!type) {
-                showMessage('Selecione um tipo de validaÃ§Ã£o!', 'error');
+                showMessage('Selecione um tipo de validação!', 'error');
                 return;
             }
 
@@ -3115,17 +3115,17 @@
 
             let params = null;
 
-            // Processar parÃ¢metros conforme o tipo
+            // Processar parâmetros conforme o tipo
             if (type === 'minLength' || type === 'maxLength' || type === 'exactLength') {
                 params = parseInt(paramInput.value);
                 if (isNaN(params)) {
-                    showMessage('Digite um nÃºmero vÃ¡lido!', 'error');
+                    showMessage('Digite um número válido!', 'error');
                     return;
                 }
             } else if (type === 'pattern') {
                 params = paramInput.value;
                 if (!params) {
-                    showMessage('Digite uma expressÃ£o regular!', 'error');
+                    showMessage('Digite uma expressão regular!', 'error');
                     return;
                 }
             }
@@ -3134,7 +3134,7 @@
             markDirty();
             renderFieldConfig();
             renderFieldsList();
-            showMessage('ValidaÃ§Ã£o adicionada com sucesso!', 'success');
+            showMessage('Validação adicionada com sucesso!', 'success');
             updateCodePanel();
         }
 
@@ -3162,22 +3162,22 @@
             
             if (!rule) return;
             
-            // Preencher o formulÃ¡rio com os valores atuais
+            // Preencher o formulário com os valores atuais
             document.getElementById('validationType').value = rule.type;
             document.getElementById('validationMessage').value = rule.message;
             
-            // Mostrar campo de parÃ¢metro se necessÃ¡rio
+            // Mostrar campo de parâmetro se necessário
             const paramGroup = document.getElementById('paramGroup');
             const paramLabel = document.getElementById('paramLabel');
             const paramInput = document.getElementById('validationParam');
             
             if (rule.type === 'minLength') {
                 paramGroup.style.display = 'block';
-                paramLabel.textContent = 'Tamanho MÃ­nimo';
+                paramLabel.textContent = 'Tamanho Mínimo';
                 paramInput.value = rule.params || '';
             } else if (rule.type === 'maxLength') {
                 paramGroup.style.display = 'block';
-                paramLabel.textContent = 'Tamanho MÃ¡ximo';
+                paramLabel.textContent = 'Tamanho Máximo';
                 paramInput.value = rule.params || '';
             } else if (rule.type === 'exactLength') {
                 paramGroup.style.display = 'block';
@@ -3185,19 +3185,19 @@
                 paramInput.value = rule.params || '';
             } else if (rule.type === 'pattern') {
                 paramGroup.style.display = 'block';
-                paramLabel.textContent = 'ExpressÃ£o Regular (regex)';
+                paramLabel.textContent = 'Expressão Regular (regex)';
                 paramInput.value = rule.params || '';
             } else {
                 paramGroup.style.display = 'none';
                 paramInput.value = '';
             }
             
-            // Remover a validaÃ§Ã£o antiga
+            // Remover a validação antiga
             field.validationRules.splice(index, 1);
             renderFieldConfig();
             renderFieldsList();
             
-            showMessage('Editando validaÃ§Ã£o. Modifique os campos e clique em "Adicionar ValidaÃ§Ã£o".', 'info');
+            showMessage('Editando validação. Modifique os campos e clique em "Adicionar Validação".', 'info');
         }
 
         function removeFieldValidation(index) {
@@ -3206,12 +3206,12 @@
             markDirty();
             renderFieldConfig();
             renderFieldsList();
-            showMessage('ValidaÃ§Ã£o removida!', 'success');
+            showMessage('Validação removida!', 'success');
             updateCodePanel();
         }
 
         function clearFieldValidations() {
-            if (!confirm('Deseja realmente limpar todas as validaÃ§Ãµes deste campo?')) return;
+            if (!confirm('Deseja realmente limpar todas as validações deste campo?')) return;
             
             const field = app.fields[selectedFieldIndex];
             field.validationRules = [];
@@ -3219,7 +3219,7 @@
             markDirty();
             renderFieldConfig();
             renderFieldsList();
-            showMessage('Todas as validaÃ§Ãµes foram removidas!', 'success');
+            showMessage('Todas as validações foram removidas!', 'success');
             updateCodePanel();
         }
 
@@ -3232,9 +3232,9 @@
         }
 
         // Alternar Tema (Light/Dark)
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        /* ════════════════════════════════════
            MOBILE DRAWERS
-           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+           ════════════════════════════════════ */
         function toggleMobileSidebar() {
             var sidebar  = document.querySelector('.ide-sidebar');
             var code     = document.querySelector('.ide-code-panel');
@@ -3275,12 +3275,12 @@
             });
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
         //  GUIDED TOUR
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
         var _tourSpot = null, _tourTip = null, _tourIdx = 0;
 
-        /* â”€â”€ helpers para abrir drawers sem o overlay escuro do mobile â”€â”€ */
+        /* ── helpers para abrir drawers sem o overlay escuro do mobile ── */
         function _tourOpenSidebar() {
             var sb = document.querySelector('.ide-sidebar');
             var cp = document.querySelector('.ide-code-panel');
@@ -3319,7 +3319,7 @@
                 var el = document.getElementById(id);
                 if (el) el.classList.remove('show');
             });
-            // PainÃ©is que usam style.display
+            // Painéis que usam style.display
             ['navPanelOverlay','camposPanelOverlay','configPanelOverlay'].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el) el.style.display = 'none';
@@ -3327,15 +3327,15 @@
         }
 
         var _tourSteps = [
-            /* â”€â”€ 1. Ribbon geral â”€â”€ */
+            /* ── 1. Ribbon geral ── */
             {
                 sel: '.ide-titlebar-actions',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'ðŸ›  Barra de Ferramentas',
-                text: 'A ribbon reÃºne todos os controles do editor. Cada grupo tem um rÃ³tulo abaixo: <b>Telas</b>, <b>Exportar / Importar</b>, <b>PainÃ©is</b> e <b>Visual</b>. Os prÃ³ximos passos mostrarÃ£o cada botÃ£o por dentro.'
+                title: '🛠 Barra de Ferramentas',
+                text: 'A ribbon reúne todos os controles do editor. Cada grupo tem um rótulo abaixo: <b>Telas</b>, <b>Exportar / Importar</b>, <b>Painéis</b> e <b>Visual</b>. Os próximos passos mostrarão cada botão por dentro.'
             },
-            /* â”€â”€ 2. Carregar â”€â”€ */
+            /* ── 2. Carregar ── */
             {
                 sel: '#dropZone',
                 pos: 'bottom',
@@ -3343,10 +3343,10 @@
                     _tourCloseAllModals(); _tourCloseDrawers();
                     openFileModal();
                 },
-                title: 'ðŸ“‚ Carregar Telas',
-                text: 'Este Ã© o painel de carregamento. Clique na Ã¡rea ou arraste arquivos <b>.txt</b> (layout 3270 com <code>x</code>=numÃ©rico e <code>z</code>=alfanumÃ©rico) ou <b>.bms</b>. MÃºltiplos arquivos de uma vez sÃ£o suportados.'
+                title: '📂 Carregar Telas',
+                text: 'Este é o painel de carregamento. Clique na área ou arraste arquivos <b>.txt</b> (layout 3270 com <code>x</code>=numérico e <code>z</code>=alfanumérico) ou <b>.bms</b>. Múltiplos arquivos de uma vez são suportados.'
             },
-            /* â”€â”€ 3. Nova Tela â”€â”€ */
+            /* ── 3. Nova Tela ── */
             {
                 sel: '#newScreenNameInput',
                 pos: 'bottom',
@@ -3354,34 +3354,34 @@
                     _tourCloseAllModals(); _tourCloseDrawers();
                     openNewScreenModal();
                 },
-                title: 'âž• Criar Nova Tela',
-                text: 'Digite aqui o nome da nova tela (atÃ© <b>8 caracteres</b>: letras e nÃºmeros). Exemplos: <code>MENU</code>, <code>CAD01</code>. ApÃ³s confirmar, o editor de layout abre automaticamente para vocÃª compor o conteÃºdo da tela.'
+                title: '➕ Criar Nova Tela',
+                text: 'Digite aqui o nome da nova tela (até <b>8 caracteres</b>: letras e números). Exemplos: <code>MENU</code>, <code>CAD01</code>. Após confirmar, o editor de layout abre automaticamente para você compor o conteúdo da tela.'
             },
-            /* â”€â”€ 4. Demo â”€â”€ */
+            /* ── 4. Demo ── */
             {
                 sel: 'button[onclick="loadExampleScreen()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'â–¶ï¸ Tela Demo',
-                text: 'Carrega uma tela de demonstraÃ§Ã£o pronta, com campos numÃ©ricos e alfanumÃ©ricos, para vocÃª explorar os recursos do editor sem precisar de um arquivo real. Ã“timo ponto de partida!'
+                title: '▶️ Tela Demo',
+                text: 'Carrega uma tela de demonstração pronta, com campos numéricos e alfanuméricos, para você explorar os recursos do editor sem precisar de um arquivo real. Ótimo ponto de partida!'
             },
-            /* â”€â”€ 5. Limpar â”€â”€ */
+            /* ── 5. Limpar ── */
             {
                 sel: 'button[onclick="clearAllScreens()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'ðŸ—‘ï¸ Limpar Telas',
-                text: 'Remove <b>todas</b> as telas carregadas e reinicia o projeto. Uma confirmaÃ§Ã£o Ã© exibida antes de apagar. Use com cuidado â€” esta aÃ§Ã£o nÃ£o pode ser desfeita.'
+                title: '🗑️ Limpar Telas',
+                text: 'Remove <b>todas</b> as telas carregadas e reinicia o projeto. Uma confirmação é exibida antes de apagar. Use com cuidado — esta ação não pode ser desfeita.'
             },
-            /* â”€â”€ 6. Salvar â”€â”€ */
+            /* ── 6. Salvar ── */
             {
                 sel: 'button[onclick="saveProject()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'ðŸ’¾ Salvar Projeto',
-                text: 'Grava o projeto atual no arquivo <b>.cics</b> da pasta selecionada. O indicador de status (â€¢) na barra de tÃ­tulo fica vermelho quando hÃ¡ alteraÃ§Ãµes nÃ£o salvas. Salve sempre antes de sair!'
+                title: '💾 Salvar Projeto',
+                text: 'Grava o projeto atual no arquivo <b>.cics</b> da pasta selecionada. O indicador de status (•) na barra de título fica vermelho quando há alterações não salvas. Salve sempre antes de sair!'
             },
-            /* â”€â”€ 7. Exportar â”€â”€ */
+            /* ── 7. Exportar ── */
             {
                 sel: '#exportModalOverlay .export-options',
                 pos: 'bottom',
@@ -3390,10 +3390,10 @@
                     var el = document.getElementById('exportModalOverlay');
                     if (el) el.classList.add('show');
                 },
-                title: 'ðŸ“¤ Exportar Regras de NavegaÃ§Ã£o',
-                text: 'Escolha o formato para exportar as regras de navegaÃ§Ã£o: <b>JSON</b> para reimportar, <b>COBOL</b> com o EVALUATE/WHEN completo, <b>CSV</b> ou <b>Excel</b> para documentaÃ§Ã£o da equipe.'
+                title: '📤 Exportar Regras de Navegação',
+                text: 'Escolha o formato para exportar as regras de navegação: <b>JSON</b> para reimportar, <b>COBOL</b> com o EVALUATE/WHEN completo, <b>CSV</b> ou <b>Excel</b> para documentação da equipe.'
             },
-            /* â”€â”€ 8. Importar â”€â”€ */
+            /* ── 8. Importar ── */
             {
                 sel: '#importDropZone',
                 pos: 'bottom',
@@ -3402,10 +3402,10 @@
                     var el = document.getElementById('importModalOverlay');
                     if (el) el.classList.add('show');
                 },
-                title: 'ðŸ“¥ Importar Regras de NavegaÃ§Ã£o',
-                text: 'Arraste ou clique para carregar um arquivo de regras exportado anteriormente (<b>JSON</b>, <b>CSV</b> ou <b>Excel</b>). O sistema associa automaticamente as regras Ã s telas pelo nome â€” telas nÃ£o encontradas podem ser mapeadas manualmente.'
+                title: '📥 Importar Regras de Navegação',
+                text: 'Arraste ou clique para carregar um arquivo de regras exportado anteriormente (<b>JSON</b>, <b>CSV</b> ou <b>Excel</b>). O sistema associa automaticamente as regras às telas pelo nome — telas não encontradas podem ser mapeadas manualmente.'
             },
-            /* â”€â”€ 9. Exp. Val. â”€â”€ */
+            /* ── 9. Exp. Val. ── */
             {
                 sel: '#validationExportModalOverlay .export-options',
                 pos: 'bottom',
@@ -3414,10 +3414,10 @@
                     var el = document.getElementById('validationExportModalOverlay');
                     if (el) el.classList.add('show');
                 },
-                title: 'ðŸ“¦ Exportar ValidaÃ§Ãµes e BMS',
-                text: 'Exporte as configuraÃ§Ãµes dos campos: <b>JSON</b> completo, <b>COBOL</b> com toda a lÃ³gica de validaÃ§Ã£o, <b>Excel/CSV</b> para documentaÃ§Ã£o, <b>BMS</b> (macros DFHMDF prontas) ou <b>Copybook</b> COBOL com definiÃ§Ãµes de campos.'
+                title: '📦 Exportar Validações e BMS',
+                text: 'Exporte as configurações dos campos: <b>JSON</b> completo, <b>COBOL</b> com toda a lógica de validação, <b>Excel/CSV</b> para documentação, <b>BMS</b> (macros DFHMDF prontas) ou <b>Copybook</b> COBOL com definições de campos.'
             },
-            /* â”€â”€ 10. Config. â”€â”€ */
+            /* ── 10. Config. ── */
             {
                 sel: '#configPanelOverlay .modal-body',
                 pos: 'left',
@@ -3426,10 +3426,10 @@
                     var el = document.getElementById('configPanelOverlay');
                     if (el) el.style.display = 'flex';
                 },
-                title: 'âš™ï¸ ConfiguraÃ§Ãµes',
-                text: 'Painel de configuraÃ§Ãµes com trÃªs opÃ§Ãµes: <b>ðŸŒ“ Alternar Tema</b> (claro/escuro, salvo no navegador); <b>ðŸ“¦ BMS / COBOL / Copybook</b> (exportaÃ§Ã£o rÃ¡pida de cÃ³digo); <b>ðŸ—º Regras de NavegaÃ§Ã£o</b> (exportar JSON).'
+                title: '⚙️ Configurações',
+                text: 'Painel de configurações com três opções: <b>🌓 Alternar Tema</b> (claro/escuro, salvo no navegador); <b>📦 BMS / COBOL / Copybook</b> (exportação rápida de código); <b>🗺 Regras de Navegação</b> (exportar JSON).'
             },
-            /* â”€â”€ 11. Sidebar â€” lista de telas â”€â”€ */
+            /* ── 11. Sidebar — lista de telas ── */
             {
                 sel: '.screens-container',
                 pos: 'right',
@@ -3438,26 +3438,26 @@
                     _tourSwitchSection('projeto');
                     if (window.innerWidth <= 767) _tourOpenSidebar();
                 },
-                title: 'ðŸ“‹ Lista de Telas',
-                text: 'Cada tela carregada aparece aqui no painel lateral. Clique em uma tela para visualizÃ¡-la no terminal. Use <b>ðŸ—‘ï¸</b> para excluir. A tela ativa fica destacada em azul.'
+                title: '📋 Lista de Telas',
+                text: 'Cada tela carregada aparece aqui no painel lateral. Clique em uma tela para visualizá-la no terminal. Use <b>🗑️</b> para excluir. A tela ativa fica destacada em azul.'
             },
-            /* â”€â”€ 12. Editar layout â”€â”€ */
+            /* ── 12. Editar layout ── */
             {
                 sel: '#btnEditScreen',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); if (window.innerWidth <= 767) _tourCloseDrawers(); },
                 title: '✏️ Editar Layout da Tela',
-                text: 'Abre o editor de texto da tela ativa â€” uma Ã¡rea de <b>24 linhas Ã— 80 colunas</b>. Digite o layout livremente usando <code>x</code> para campos numÃ©ricos e <code>z</code> para alfanumÃ©ricos. Ao clicar em <b>✅ Fechar EdiÃ§Ã£o</b>, COBOL e BMS sÃ£o regenerados.'
+                text: 'Abre o editor de texto da tela ativa — uma área de <b>24 linhas × 80 colunas</b>. Digite o layout livremente usando <code>x</code> para campos numéricos e <code>z</code> para alfanuméricos. Ao clicar em <b>✅ Fechar Edição</b>, COBOL e BMS são regenerados.'
             },
-            /* â”€â”€ 13. Terminal â”€â”€ */
+            /* ── 13. Terminal ── */
             {
                 sel: '.terminal-screen',
                 pos: 'top',
                 setup: function() { _tourCloseAllModals(); if (window.innerWidth <= 767) _tourCloseDrawers(); },
-                title: 'ðŸ–¥ Terminal IBM 3270',
-                text: 'EmulaÃ§Ã£o exata do terminal 3270 â€” <b>24 linhas Ã— 80 colunas</b>. Campos editÃ¡veis aparecem em <b>verde claro</b>. Clique em qualquer campo para selecionÃ¡-lo. No mobile, use a barra de controles abaixo para navegar entre campos.'
+                title: '🖥 Terminal IBM 3270',
+                text: 'Emulação exata do terminal 3270 — <b>24 linhas × 80 colunas</b>. Campos editáveis aparecem em <b>verde claro</b>. Clique em qualquer campo para selecioná-lo. No mobile, use a barra de controles abaixo para navegar entre campos.'
             },
-            /* â”€â”€ 14. PF'S â”€â”€ */
+            /* ── 14. PF'S ── */
             {
                 sel: '.sidebar-pf-grid',
                 pos: 'right',
@@ -3466,10 +3466,10 @@
                     _tourSwitchSection('custom');
                     if (window.innerWidth <= 767) _tourOpenSidebar();
                 },
-                title: 'âŒ¨ï¸ Teclas de FunÃ§Ã£o',
-                text: 'Na aba <b>PF\'S</b> ficam as teclas PF1â€“PF12, â†‘ PREV, â†“ NEXT e ENTER. Teclas com <b>borda verde</b> tÃªm regras de navegaÃ§Ã£o configuradas. Clique em qualquer tecla para simulÃ¡-la no terminal.'
+                title: '⌨️ Teclas de Função',
+                text: 'Na aba <b>PF\'S</b> ficam as teclas PF1–PF12, ↑ PREV, ↓ NEXT e ENTER. Teclas com <b>borda verde</b> têm regras de navegação configuradas. Clique em qualquer tecla para simulá-la no terminal.'
             },
-            /* â”€â”€ 15. NavegaÃ§Ã£o â€” dentro do painel â”€â”€ */
+            /* ── 15. Navegação — dentro do painel ── */
             {
                 sel: '#navPanelOverlay .modal',
                 pos: 'right',
@@ -3478,10 +3478,10 @@
                     var el = document.getElementById('navPanelOverlay');
                     if (el) el.style.display = 'flex';
                 },
-                title: 'ðŸ”€ Regras de NavegaÃ§Ã£o',
-                text: 'Este painel lista todas as regras de navegaÃ§Ã£o da tela ativa. Cada regra define: <b>Tela de origem</b>, <b>Tecla PF</b> e <b>AÃ§Ã£o</b> (navegar para outra tela, exibir mensagem, etc.). Clique em <b>Adicionar Regra</b> para criar uma nova. O COBOL Ã© gerado automaticamente.'
+                title: '🔀 Regras de Navegação',
+                text: 'Este painel lista todas as regras de navegação da tela ativa. Cada regra define: <b>Tela de origem</b>, <b>Tecla PF</b> e <b>Ação</b> (navegar para outra tela, exibir mensagem, etc.). Clique em <b>Adicionar Regra</b> para criar uma nova. O COBOL é gerado automaticamente.'
             },
-            /* â”€â”€ 16. Campos â€” dentro do painel â”€â”€ */
+            /* ── 16. Campos — dentro do painel ── */
             {
                 sel: '#camposPanelOverlay .modal',
                 pos: 'right',
@@ -3490,10 +3490,10 @@
                     var el = document.getElementById('camposPanelOverlay');
                     if (el) el.style.display = 'flex';
                 },
-                title: 'ðŸ”¤ Campos e ValidaÃ§Ãµes',
-                text: 'Este painel tem dois lados: Ã  esquerda a <b>lista de campos</b> da tela (clique para selecionar) e Ã  direita a <b>configuraÃ§Ã£o</b> do campo: nome BMS, tipo, validaÃ§Ãµes (obrigatÃ³rio, tamanho mÃ­nimo, CPF, data, etc.). As teclas que disparam a validaÃ§Ã£o sÃ£o configuradas no topo (ENTER, PF1â€“PF12).'
+                title: '🔤 Campos e Validações',
+                text: 'Este painel tem dois lados: à esquerda a <b>lista de campos</b> da tela (clique para selecionar) e à direita a <b>configuração</b> do campo: nome BMS, tipo, validações (obrigatório, tamanho mínimo, CPF, data, etc.). As teclas que disparam a validação são configuradas no topo (ENTER, PF1–PF12).'
             },
-            /* â”€â”€ 17. CÃ³digo CICS â”€â”€ */
+            /* ── 17. Código CICS ── */
             {
                 sel: '#tabCics',
                 pos: 'left',
@@ -3502,10 +3502,10 @@
                     switchCodeTab('cics');
                     if (window.innerWidth <= 767) _tourOpenCode();
                 },
-                title: 'ðŸ“‘ Aba CICS/COBOL',
-                text: 'A aba <b>CICS/COBOL</b> exibe o cÃ³digo completo do programa CICS â€” EVALUATE/WHEN para cada PF key, validaÃ§Ãµes de campo, tratamento de mensagens e chamadas EXEC CICS â€” tudo gerado <b>em tempo real</b> conforme vocÃª edita.'
+                title: '📑 Aba CICS/COBOL',
+                text: 'A aba <b>CICS/COBOL</b> exibe o código completo do programa CICS — EVALUATE/WHEN para cada PF key, validações de campo, tratamento de mensagens e chamadas EXEC CICS — tudo gerado <b>em tempo real</b> conforme você edita.'
             },
-            /* â”€â”€ 18. BMS MAP â”€â”€ */
+            /* ── 18. BMS MAP ── */
             {
                 sel: '#tabBms',
                 pos: 'left',
@@ -3514,18 +3514,18 @@
                     switchCodeTab('bms');
                     if (window.innerWidth <= 767) _tourOpenCode();
                 },
-                title: 'ðŸ—º Aba BMS MAP',
-                text: 'A aba <b>BMS MAP</b> exibe o source BMS com macros <code>DFHMSD</code>, <code>DFHMDI</code> e <code>DFHMDF</code> â€” nomes de atÃ© 8 caracteres, <code>POS</code>, <code>LENGTH</code> e <code>ATTRB</code>. Pronto para compilar com o assembler HLASM do z/OS.'
+                title: '🗺 Aba BMS MAP',
+                text: 'A aba <b>BMS MAP</b> exibe o source BMS com macros <code>DFHMSD</code>, <code>DFHMDI</code> e <code>DFHMDF</code> — nomes de até 8 caracteres, <code>POS</code>, <code>LENGTH</code> e <code>ATTRB</code>. Pronto para compilar com o assembler HLASM do z/OS.'
             },
-            /* â”€â”€ 19. Tour â”€â”€ */
+            /* ── 19. Tour ── */
             {
                 sel: 'button[onclick="startTour()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'ðŸŽ¯ Tour Interativo',
-                text: 'Este botÃ£o reinicia o tour a qualquer momento. Use sempre que quiser rever uma funcionalidade ou apresentar o editor para alguÃ©m. O tour fecha automaticamente ao clicar em <b>✅ Concluir</b> ou <b>âœ• Sair</b>.'
+                title: '🎯 Tour Interativo',
+                text: 'Este botão reinicia o tour a qualquer momento. Use sempre que quiser rever uma funcionalidade ou apresentar o editor para alguém. O tour fecha automaticamente ao clicar em <b>✅ Concluir</b> ou <b>✕ Sair</b>.'
             },
-            /* â”€â”€ 20. Ajuda â”€â”€ */
+            /* ── 20. Ajuda ── */
             {
                 sel: '#helpModalOverlay .modal',
                 pos: 'left',
@@ -3533,16 +3533,16 @@
                     _tourCloseAllModals(); _tourCloseDrawers();
                     if (typeof showHelp === 'function') showHelp();
                 },
-                title: 'â“ Manual de Ajuda',
-                text: 'O painel de ajuda contÃ©m o manual completo do editor: formato do arquivo TXT, atalhos de teclado, como criar regras de navegaÃ§Ã£o, como configurar validaÃ§Ãµes, exemplos de cÃ³digo BMS/COBOL e soluÃ§Ã£o de problemas comuns.'
+                title: '❓ Manual de Ajuda',
+                text: 'O painel de ajuda contém o manual completo do editor: formato do arquivo TXT, atalhos de teclado, como criar regras de navegação, como configurar validações, exemplos de código BMS/COBOL e solução de problemas comuns.'
             },
-            /* â”€â”€ 21. Tema â”€â”€ */
+            /* ── 21. Tema ── */
             {
                 sel: 'button[onclick="toggleTheme()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
-                title: 'ðŸŒ“ Alternar Tema',
-                text: 'Muda entre <b>modo escuro</b> e <b>modo claro</b>. A preferÃªncia Ã© salva no navegador â€” cada pessoa pode usar o tema que preferir. O modo claro facilita a leitura em ambientes bem iluminados.'
+                title: '🌓 Alternar Tema',
+                text: 'Muda entre <b>modo escuro</b> e <b>modo claro</b>. A preferência é salva no navegador — cada pessoa pode usar o tema que preferir. O modo claro facilita a leitura em ambientes bem iluminados.'
             }
         ];
 
@@ -3597,7 +3597,7 @@
             var pad = 7;
             var r   = el.getBoundingClientRect();
 
-            /* visÃ­vel na viewport? */
+            /* visível na viewport? */
             var visible = r.width > 0 && r.height > 0 &&
                           r.right  > 0 && r.left < window.innerWidth &&
                           r.bottom > 0 && r.top  < window.innerHeight;
@@ -3608,7 +3608,7 @@
                 _tourSpot.style.width  = (r.width  + pad * 2) + 'px';
                 _tourSpot.style.height = (r.height + pad * 2) + 'px';
             } else {
-                /* elemento fora da viewport (drawer fechado, etc.) â€” esconde spotlight */
+                /* elemento fora da viewport (drawer fechado, etc.) — esconde spotlight */
                 _tourSpot.style.top    = '-9999px';
                 _tourSpot.style.left   = '-9999px';
                 _tourSpot.style.width  = '0';
@@ -3668,23 +3668,23 @@
             _tourCloseDrawers();
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        //  TOUR BÃSICO  (Carregar â†’ Terminal â†’ BMS â†’ Exportar)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
+        //  TOUR BÁSICO  (Carregar → Terminal → BMS → Exportar)
+        // ════════════════════════════════════════════
         var _basicTourSteps = [
             {
                 sel: 'button[onclick="openFileModal()"]',
                 pos: 'bottom',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
                 title: '1ï¸âƒ£ Carregar arquivo TXT',
-                text: 'Toque em <b>Carregar</b> para abrir o seletor de arquivos.<br>Selecione um arquivo <code>.txt</code> ou <code>.bms</code> com o layout da sua tela CICS 3270. VocÃª pode carregar vÃ¡rios de uma vez!'
+                text: 'Toque em <b>Carregar</b> para abrir o seletor de arquivos.<br>Selecione um arquivo <code>.txt</code> ou <code>.bms</code> com o layout da sua tela CICS 3270. Você pode carregar vários de uma vez!'
             },
             {
                 sel: '#terminal',
                 pos: 'top',
                 setup: function() { _tourCloseAllModals(); _tourCloseDrawers(); },
                 title: '2ï¸âƒ£ Visualizar no Terminal',
-                text: 'ApÃ³s carregar, a tela aparece aqui no <b>Terminal CICS 3270</b>, exatamente como seria no mainframe â€” 24 linhas Ã— 80 colunas. Clique nas telas da barra lateral para alternar entre elas.'
+                text: 'Após carregar, a tela aparece aqui no <b>Terminal CICS 3270</b>, exatamente como seria no mainframe — 24 linhas × 80 colunas. Clique nas telas da barra lateral para alternar entre elas.'
             },
             {
                 sel: '#tabBms',
@@ -3695,7 +3695,7 @@
                     if (window.innerWidth <= 767) _tourOpenCode();
                 },
                 title: '3ï¸âƒ£ Ver o BMS gerado',
-                text: 'Clique na aba <b>BMS MAP</b> para ver o source BMS completo com as macros <code>DFHMSD</code>, <code>DFHMDI</code> e <code>DFHMDF</code> â€” gerado automaticamente a partir do seu arquivo TXT, pronto para o assembler HLASM.'
+                text: 'Clique na aba <b>BMS MAP</b> para ver o source BMS completo com as macros <code>DFHMSD</code>, <code>DFHMDI</code> e <code>DFHMDF</code> — gerado automaticamente a partir do seu arquivo TXT, pronto para o assembler HLASM.'
             },
             {
                 sel: 'button[onclick="openValidationExportModal()"]',
@@ -3705,13 +3705,13 @@
                     if (window.innerWidth <= 767) _tourCloseDrawers();
                 },
                 title: '4ï¸âƒ£ Exportar o BMS',
-                text: 'Clique em <b>Exp. Val.</b> para baixar o BMS MAP gerado. Escolha o formato â€” JSON, COBOL, SQL ou <b>BMS direto</b>. O arquivo fica pronto para usar no seu projeto z/OS!'
+                text: 'Clique em <b>Exp. Val.</b> para baixar o BMS MAP gerado. Escolha o formato — JSON, COBOL, SQL ou <b>BMS direto</b>. O arquivo fica pronto para usar no seu projeto z/OS!'
             }
         ];
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        //  MODAL TELA DE EXEMPLO  (mostrar antes do tour bÃ¡sico)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
+        //  MODAL TELA DE EXEMPLO  (mostrar antes do tour básico)
+        // ════════════════════════════════════════════
         function showSampleTxtModal() {
             var SAMPLE =
 '                                                                                ' + '\n' +
@@ -3771,16 +3771,16 @@
                 document.head.appendChild(s);
             }
 
-            /* coloriza o conteÃºdo */
+            /* coloriza o conteúdo */
             function colorize(txt) {
                 return txt.split('\n').map(function(line) {
-                    if (/^[-=â”€]+$/.test(line.trim()) || line.trim() === '') {
+                    if (/^[-=─]+$/.test(line.trim()) || line.trim() === '') {
                         return '<span class="stb-sep">' + _esc(line) + '</span>';
                     }
                     if (/PF\d+=/.test(line)) {
                         return '<span class="stb-pf">' + _esc(line) + '</span>';
                     }
-                    /* destaca os campos (sequÃªncias de x) em ciano */
+                    /* destaca os campos (sequências de x) em ciano */
                     return _esc(line).replace(/(x+)/g, '<span class="stb-field">$1</span>');
                 }).join('\n');
             }
@@ -3791,21 +3791,21 @@
             overlay.innerHTML =
                 '<div id="sampleTxtBox">' +
                     '<div class="stb-header">' +
-                        '<div class="stb-header-left">ðŸ“„ Exemplo de arquivo TXT â€” tela CICS 3270</div>' +
+                        '<div class="stb-header-left">📄 Exemplo de arquivo TXT — tela CICS 3270</div>' +
                     '</div>' +
                     '<div class="stb-subtitle">' +
-                        '<span class="stb-sub-full">ðŸ“‹ Copie o conteÃºdo abaixo, salve como arquivo <strong>.TXT</strong> e carregue no editor para gerar o BMS</span>' +
-                        '<span class="stb-sub-short">ðŸ“‹ Copie, salve como <strong>.TXT</strong> e carregue no editor</span>' +
+                        '<span class="stb-sub-full">📋 Copie o conteúdo abaixo, salve como arquivo <strong>.TXT</strong> e carregue no editor para gerar o BMS</span>' +
+                        '<span class="stb-sub-short">📋 Copie, salve como <strong>.TXT</strong> e carregue no editor</span>' +
                     '</div>' +
                     '<div class="stb-legend">' +
-                        '<span><code style="color:#4ec9b0;">xxx</code> = campo editÃ¡vel (alfanumÃ©rico)</span>' +
-                        '<span><code style="color:#c586c0;">PF3=...</code> = tecla de funÃ§Ã£o</span>' +
-                        '<span><code>---</code> = separador / texto estÃ¡tico</span>' +
+                        '<span><code style="color:#4ec9b0;">xxx</code> = campo editável (alfanumérico)</span>' +
+                        '<span><code style="color:#c586c0;">PF3=...</code> = tecla de função</span>' +
+                        '<span><code>---</code> = separador / texto estático</span>' +
                     '</div>' +
                     '<pre class="stb-pre" id="sampleTxtPre">' + colorize(SAMPLE) + '</pre>' +
                     '<div class="stb-footer">' +
-                        '<button class="stb-btn stb-btn-next" id="stbSkip">Pular â†’ iniciar tour</button>' +
-                        '<button class="stb-btn stb-btn-copy" id="stbCopy">ðŸ“‹ Copiar exemplo</button>' +
+                        '<button class="stb-btn stb-btn-next" id="stbSkip">Pular → iniciar tour</button>' +
+                        '<button class="stb-btn stb-btn-copy" id="stbCopy">📋 Copiar exemplo</button>' +
                     '</div>' +
                 '</div>';
             document.body.appendChild(overlay);
@@ -3820,7 +3820,7 @@
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(SAMPLE).then(function() {
                         btn.textContent = '✅ Copiado!';
-                        setTimeout(function() { btn.innerHTML = 'ðŸ“‹ Copiar exemplo'; }, 2000);
+                        setTimeout(function() { btn.innerHTML = '📋 Copiar exemplo'; }, 2000);
                     });
                 } else {
                     /* fallback legado */
@@ -3832,7 +3832,7 @@
                     document.execCommand('copy');
                     ta.remove();
                     btn.textContent = '✅ Copiado!';
-                    setTimeout(function() { btn.innerHTML = 'ðŸ“‹ Copiar exemplo'; }, 2000);
+                    setTimeout(function() { btn.innerHTML = '📋 Copiar exemplo'; }, 2000);
                 }
             });
 
@@ -3872,12 +3872,12 @@
             };
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
         //  MODAL DE BOAS-VINDAS  (aparece sempre ao carregar)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ════════════════════════════════════════════
         (function initWelcomeTour() {
 
-            /* cria os estilos â€” responsivo mobile incluso */
+            /* cria os estilos — responsivo mobile incluso */
             var style = document.createElement('style');
             style.textContent =
                 '#welcomeTourOverlay{position:fixed;inset:0;background:rgba(0,0,0,.70);z-index:5000;display:flex;align-items:center;justify-content:center;padding:12px;}' +
@@ -3901,9 +3901,9 @@
             overlay.id = 'welcomeTourOverlay';
             overlay.innerHTML =
                 '<div id="welcomeTourBox">' +
-                    '<div class="wtb-header">ðŸ–¥ï¸ CICS COBOL Editor â€” Bem-vindo!</div>' +
+                    '<div class="wtb-header">🖥️ CICS COBOL Editor — Bem-vindo!</div>' +
                     '<div class="wtb-body">' +
-                        'Quer ver um <b>tour rÃ¡pido</b> de como usar o editor?' +
+                        'Quer ver um <b>tour rápido</b> de como usar o editor?' +
                         '<div class="wtb-steps">' +
                             '<div class="wtb-step"><div class="wtb-step-num">1</div><span>Carregar um arquivo <b>TXT / BMS</b> com sua tela</span></div>' +
                             '<div class="wtb-step"><div class="wtb-step-num">2</div><span>Visualizar a tela no <b>Terminal 3270</b></span></div>' +
@@ -3912,8 +3912,8 @@
                         '</div>' +
                     '</div>' +
                     '<div class="wtb-footer">' +
-                        '<button class="wtb-btn wtb-btn-no"  id="wtbNo">NÃ£o, obrigado</button>' +
-                        '<button class="wtb-btn wtb-btn-yes" id="wtbYes">â–¶ Sim, mostrar tour!</button>' +
+                        '<button class="wtb-btn wtb-btn-no"  id="wtbNo">Não, obrigado</button>' +
+                        '<button class="wtb-btn wtb-btn-yes" id="wtbYes">▶ Sim, mostrar tour!</button>' +
                     '</div>' +
                 '</div>';
             document.body.appendChild(overlay);
@@ -3933,11 +3933,11 @@
             const body = document.body;
             const isLight = body.classList.toggle('light-theme');
             
-            // Salvar preferÃªncia no localStorage
+            // Salvar preferência no localStorage
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
             
             // Mostrar mensagem
-            showMessage(isLight ? 'Tema Moderno Light ativado! â˜€ï¸' : 'Tema Mainframe Dark ativado! ðŸŒ‘', 'success');
+            showMessage(isLight ? 'Tema Moderno Light ativado! ☀️' : 'Tema Mainframe Dark ativado! 🌑', 'success');
         }
 
         // Carregar tema salvo ao iniciar
@@ -3948,13 +3948,13 @@
             }
         }
 
-        // Chamar ao carregar a pÃ¡gina
+        // Chamar ao carregar a página
         document.addEventListener('DOMContentLoaded', loadSavedTheme);
 
-        // ExportaÃ§Ã£o de Regras de NavegaÃ§Ã£o
+        // Exportação de Regras de Navegação
         function openExportModal() {
             if (app.navigationRules.length === 0) {
-                showMessage('Nenhuma regra de navegaÃ§Ã£o para exportar!', 'error');
+                showMessage('Nenhuma regra de navegação para exportar!', 'error');
                 return;
             }
             document.getElementById('exportModalOverlay').classList.add('show');
@@ -3964,10 +3964,10 @@
             document.getElementById('exportModalOverlay').classList.remove('show');
         }
 
-        // ExportaÃ§Ã£o de ValidaÃ§Ãµes
+        // Exportação de Validações
         function openValidationExportModal() {
             if (app.screens.length === 0) {
-                showMessage('Carregue pelo menos uma tela antes de exportar validaÃ§Ãµes!', 'error');
+                showMessage('Carregue pelo menos uma tela antes de exportar validações!', 'error');
                 return;
             }
             document.getElementById('validationExportModalOverlay').classList.add('show');
@@ -4012,7 +4012,7 @@
                 });
             }
 
-            // Ocultar checklist (comeÃ§a no modo "atual")
+            // Ocultar checklist (começa no modo "atual")
             var mapList = document.getElementById('bmsExportMapList');
             if (mapList) mapList.style.display = 'none';
 
@@ -4036,11 +4036,11 @@
             document.getElementById('bmsOptionsModalOverlay').classList.remove('show');
         }
 
-        // ImportaÃ§Ã£o de Regras
+        // Importação de Regras
         let pendingImportData = null;
 
         function openImportModal() {
-            console.log('Abrindo modal de importaÃ§Ã£o...');
+            console.log('Abrindo modal de importação...');
             console.log('Telas carregadas:', app.screens.length);
             
             if (app.screens.length === 0) {
@@ -4060,7 +4060,7 @@
         }
 
         function selectImportFile() {
-            console.log('Selecionando arquivo de importaÃ§Ã£o...');
+            console.log('Selecionando arquivo de importação...');
             const input = document.getElementById('importFileInput');
             console.log('Input encontrado:', input ? 'SIM' : 'NÃƒO');
             if (input) {
@@ -4075,7 +4075,7 @@
             if (file) {
                 processImportFile(file);
             }
-            // Limpar o input apÃ³s processar
+            // Limpar o input após processar
             e.target.value = '';
         }
 
@@ -4085,7 +4085,7 @@
             
             try {
                 const content = await readFile(file);
-                console.log('ConteÃºdo lido, tamanho:', content.length);
+                console.log('Conteúdo lido, tamanho:', content.length);
                 
                 const fileName = file.name.toLowerCase();
                 let importedRules = [];
@@ -4100,7 +4100,7 @@
                     console.log('Parseando Excel...');
                     importedRules = parseExcelRules(content);
                 } else {
-                    throw new Error('Formato de arquivo nÃ£o suportado: ' + fileName);
+                    throw new Error('Formato de arquivo não suportado: ' + fileName);
                 }
 
                 console.log('Regras importadas:', importedRules.length);
@@ -4137,7 +4137,7 @@
             const lines = content.split('\n').filter(l => l.trim());
             const rules = [];
             
-            // Ignorar cabeÃ§alho
+            // Ignorar cabeçalho
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
@@ -4183,7 +4183,7 @@
             const rows = xmlDoc.querySelectorAll('Row');
             const rules = [];
             
-            // Ignorar primeira linha (cabeÃ§alho)
+            // Ignorar primeira linha (cabeçalho)
             for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('Cell Data');
                 if (cells.length >= 5) {
@@ -4208,7 +4208,7 @@
             const container = document.getElementById('importPreviewContent');
             let html = `<div style="margin-bottom: 15px; color: #00ff00;">
                 <strong>Total de regras no arquivo:</strong> ${rules.length}<br>
-                <strong>Telas disponÃ­veis no sistema:</strong> ${app.screens.length}
+                <strong>Telas disponíveis no sistema:</strong> ${app.screens.length}
             </div>`;
             
             html += '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
@@ -4216,14 +4216,14 @@
             html += '<th style="padding: 8px; border: 1px solid #00ff00;">Tela Origem</th>';
             html += '<th style="padding: 8px; border: 1px solid #00ff00;">Tela Destino</th>';
             html += '<th style="padding: 8px; border: 1px solid #00ff00;">Tecla</th>';
-            html += '<th style="padding: 8px; border: 1px solid #00ff00;">AÃ§Ã£o</th>';
+            html += '<th style="padding: 8px; border: 1px solid #00ff00;">Ação</th>';
             html += '<th style="padding: 8px; border: 1px solid #00ff00;">Status</th>';
             html += '</tr></thead><tbody>';
             
             rules.forEach(rule => {
                 const fromExists = app.screens.some(s => s.name === rule.fromScreen);
                 const toExists = rule.action === 'navigate' ? app.screens.some(s => s.name === rule.toScreen) : true;
-                const status = fromExists && toExists ? '✅ OK' : 'âš ï¸ Tela nÃ£o encontrada';
+                const status = fromExists && toExists ? '✅ OK' : '⚠️ Tela não encontrada';
                 const statusColor = fromExists && toExists ? '#00ff00' : '#ff9800';
                 
                 html += `<tr style="border-bottom: 1px solid #003300;">`;
@@ -4251,7 +4251,7 @@
                 const fromScreen = app.screens.find(s => s.name === rule.fromScreen);
                 const toScreen = app.screens.find(s => s.name === rule.toScreen);
                 
-                // Verificar se jÃ¡ existe regra idÃªntica
+                // Verificar se já existe regra idêntica
                 const exists = app.navigationRules.some(r => 
                     r.fromScreen === fromScreen?.id && 
                     r.key === rule.key && 
@@ -4270,7 +4270,7 @@
                     key: rule.key,
                     action: rule.action,
                     message: rule.message || '',
-                    // Guardar nomes originais para associaÃ§Ã£o manual
+                    // Guardar nomes originais para associação manual
                     originalFromScreenName: rule.fromScreen,
                     originalToScreenName: rule.toScreen,
                     needsMapping: !fromScreen || (rule.action === 'navigate' && !toScreen)
@@ -4289,20 +4289,20 @@
             closeImportModal();
             
             if (needsMapping.length > 0) {
-                showMessage(`✅ ${imported} regra(s) importada(s). ${needsMapping.length} precisa(m) de associaÃ§Ã£o manual.`, 'info');
-                // Abrir modal de associaÃ§Ã£o apÃ³s 1 segundo
+                showMessage(`✅ ${imported} regra(s) importada(s). ${needsMapping.length} precisa(m) de associação manual.`, 'info');
+                // Abrir modal de associação após 1 segundo
                 setTimeout(() => openMappingModal(), 1000);
             } else {
                 showMessage(`✅ ${imported} regra(s) importada(s) com sucesso!`, 'success');
             }
         }
 
-        // Modal de AssociaÃ§Ã£o Manual de Telas
+        // Modal de Associação Manual de Telas
         function openMappingModal() {
             const unmappedRules = app.navigationRules.filter(r => r.needsMapping);
             
             if (unmappedRules.length === 0) {
-                showMessage('Todas as regras jÃ¡ estÃ£o associadas!', 'success');
+                showMessage('Todas as regras já estão associadas!', 'success');
                 return;
             }
             
@@ -4325,13 +4325,13 @@
                 html += `
                 <div style="background: #001100; border: 1px solid #003300; border-radius: 5px; padding: 15px; margin-bottom: 15px;">
                     <div style="margin-bottom: 10px; color: #00ff00; font-weight: bold;">
-                        Regra ${index + 1}: ${rule.key} â†’ ${rule.action === 'navigate' ? 'Navegar' : rule.action === 'navigate_msg' ? 'Navegar + Mensagem' : 'Mensagem'}
+                        Regra ${index + 1}: ${rule.key} → ${rule.action === 'navigate' ? 'Navegar' : rule.action === 'navigate_msg' ? 'Navegar + Mensagem' : 'Mensagem'}
                     </div>
                     
                     ${needsFrom ? `
                     <div style="margin-bottom: 10px;">
                         <label style="color: #00ff00; display: block; margin-bottom: 5px;">
-                            Tela Origem: <span style="color: #ff9800;">"${rule.originalFromScreenName || 'NÃ£o especificada'}"</span>
+                            Tela Origem: <span style="color: #ff9800;">"${rule.originalFromScreenName || 'Não especificada'}"</span>
                         </label>
                         <select id="fromScreen_${rule.id}" style="width: 100%; padding: 5px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
                             <option value="">-- Selecione uma tela --</option>
@@ -4347,7 +4347,7 @@
                     ${needsTo ? `
                     <div style="margin-bottom: 10px;">
                         <label style="color: #00ff00; display: block; margin-bottom: 5px;">
-                            Tela Destino: <span style="color: #ff9800;">"${rule.originalToScreenName || 'NÃ£o especificada'}"</span>
+                            Tela Destino: <span style="color: #ff9800;">"${rule.originalToScreenName || 'Não especificada'}"</span>
                         </label>
                         <select id="toScreen_${rule.id}" style="width: 100%; padding: 5px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
                             <option value="">-- Selecione uma tela --</option>
@@ -4356,7 +4356,7 @@
                     </div>
                     ` : rule.action === 'message' ? `
                     <div style="margin-bottom: 10px; color: #00ff00; opacity: 0.7;">
-                        ðŸ’¬ Mensagem: ${rule.message}
+                        💬 Mensagem: ${rule.message}
                     </div>
                     ` : `
                     <div style="margin-bottom: 10px; color: #00ff00; opacity: 0.7;">
@@ -4374,22 +4374,22 @@
             let updated = 0;
             let stillPending = 0;
             
-            console.log('=== SALVANDO ASSOCIAÃ‡Ã•ES ===');
+            console.log('=== SALVANDO ASSOCIAÇÕES ===');
             console.log('app.navigationRules:', app.navigationRules);
             console.log('Regras com needsMapping:', app.navigationRules.filter(r => r.needsMapping));
             
             app.navigationRules.forEach(rule => {
                 if (!rule.needsMapping) {
-                    console.log(`Regra ${rule.id} nÃ£o precisa de mapeamento, pulando...`);
+                    console.log(`Regra ${rule.id} não precisa de mapeamento, pulando...`);
                     return;
                 }
                 
-                console.log(`\nðŸ“‹ Processando regra ${rule.id}:`, JSON.stringify(rule, null, 2));
+                console.log(`\n📋 Processando regra ${rule.id}:`, JSON.stringify(rule, null, 2));
                 
                 const fromSelect = document.getElementById(`fromScreen_${rule.id}`);
                 const toSelect = document.getElementById(`toScreen_${rule.id}`);
                 
-                console.log('ðŸ” Buscando elementos:');
+                console.log('🔍 Buscando elementos:');
                 console.log(`  fromSelect (id: fromScreen_${rule.id}):`, fromSelect);
                 console.log(`  toSelect (id: toScreen_${rule.id}):`, toSelect);
                 
@@ -4403,25 +4403,25 @@
                 // Atualizar fromScreen se houver select e valor selecionado
                 if (fromSelect && fromSelect.value && fromSelect.value !== '') {
                     const newValue = parseFloat(fromSelect.value);
-                    console.log(`✏️ Atualizando fromScreen: ${rule.fromScreen} â†’ ${newValue}`);
+                    console.log(`✏️ Atualizando fromScreen: ${rule.fromScreen} → ${newValue}`);
                     rule.fromScreen = newValue;
                 }
                 
                 // Atualizar toScreen se houver select e valor selecionado
                 if (toSelect && toSelect.value && toSelect.value !== '') {
                     const newValue = parseFloat(toSelect.value);
-                    console.log(`✏️ Atualizando toScreen: ${rule.toScreen} â†’ ${newValue}`);
+                    console.log(`✏️ Atualizando toScreen: ${rule.toScreen} → ${newValue}`);
                     rule.toScreen = newValue;
                 }
                 
-                console.log(`ðŸ“Š ApÃ³s atualizaÃ§Ã£o:`, { fromScreen: rule.fromScreen, toScreen: rule.toScreen, action: rule.action });
+                console.log(`📊 Após atualização:`, { fromScreen: rule.fromScreen, toScreen: rule.toScreen, action: rule.action });
                 
                 // Verificar se ainda precisa de mapeamento
                 const hasFrom = rule.fromScreen && rule.fromScreen !== 0;
                 const hasTo = rule.toScreen && rule.toScreen !== 0;
                 const needsTo = rule.action === 'navigate' || rule.action === 'navigate_msg'; // Precisa de toScreen se for navigate ou navigate_msg
                 
-                console.log(`ðŸ”Ž ValidaÃ§Ã£o: hasFrom=${hasFrom}, hasTo=${hasTo}, needsTo=${needsTo}`);
+                console.log(`🔎 Validação: hasFrom=${hasFrom}, hasTo=${hasTo}, needsTo=${needsTo}`);
                 
                 if (hasFrom && (!needsTo || hasTo)) {
                     console.log('✅ Regra completa! Removendo flags...');
@@ -4430,26 +4430,26 @@
                     delete rule.originalToScreenName;
                     updated++;
                 } else {
-                    console.log('âš ï¸ Regra ainda incompleta');
+                    console.log('⚠️ Regra ainda incompleta');
                     stillPending++;
                 }
             });
             
             console.log(`\n=== RESULTADO: ${updated} atualizadas, ${stillPending} pendentes ===`);
-            console.log('app.navigationRules apÃ³s salvar:', app.navigationRules);
+            console.log('app.navigationRules após salvar:', app.navigationRules);
             
             renderNavigationRules();
             updatePFKeysLabels();
             closeMappingModal();
             
             if (stillPending > 0) {
-                showMessage(`✅ ${updated} regra(s) associada(s). ${stillPending} ainda precisa(m) de associaÃ§Ã£o.`, 'info');
+                showMessage(`✅ ${updated} regra(s) associada(s). ${stillPending} ainda precisa(m) de associação.`, 'info');
             } else {
                 showMessage(`✅ Todas as ${updated} regra(s) associadas com sucesso!`, 'success');
             }
         }
 
-        /* â”€â”€ IndexedDB: recupera File System handles persistidos pelo index.html â”€â”€ */
+        /* ── IndexedDB: recupera File System handles persistidos pelo index.html ── */
         function openHandleDB() {
             return new Promise(function(resolve, reject) {
                 var req = indexedDB.open('cics-studio', 1);
@@ -4556,12 +4556,12 @@
             };
             var json = JSON.stringify(projData, null, 2);
 
-            /* â”€â”€ 1Âª tentativa: handle salvo no IndexedDB pelo index.html â”€â”€ */
+            /* ── 1ª tentativa: handle salvo no IndexedDB pelo index.html ── */
             if (!forcePickNew) {
                 var projDir = _saveDirHandle || await loadHandle('proj-dir');
                 if (projDir) {
                     try {
-                        /* Garante permissÃ£o de escrita (pode pedir confirmaÃ§Ã£o 1x por sessÃ£o) */
+                        /* Garante permissão de escrita (pode pedir confirmação 1x por sessão) */
                         var perm = await projDir.queryPermission({ mode: 'readwrite' });
                         if (perm !== 'granted') {
                             perm = await projDir.requestPermission({ mode: 'readwrite' });
@@ -4576,11 +4576,11 @@
                             showMessage('✅ Projeto "' + projName + '" salvo com sucesso!', 'success');
                             return;
                         }
-                    } catch(e) { /* cai no prÃ³ximo mÃ©todo */ }
+                    } catch(e) { /* cai no próximo método */ }
                 }
             }
 
-            /* â”€â”€ 2Âª tentativa: showDirectoryPicker (abre na pasta certa pelo id) â”€â”€ */
+            /* ── 2ª tentativa: showDirectoryPicker (abre na pasta certa pelo id) ── */
             if ('showDirectoryPicker' in window) {
                 try {
                     var baseDir = await window.showDirectoryPicker({ mode: 'readwrite', id: 'simucics-base' });
@@ -4599,7 +4599,7 @@
                 }
             }
 
-            /* â”€â”€ Fallback: download do arquivo .cics â”€â”€ */
+            /* ── Fallback: download do arquivo .cics ── */
             var blob = new Blob([json], { type: 'application/json' });
             var a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -4728,8 +4728,8 @@
         }
 
         function exportAsCSV() {
-            // CabeÃ§alho com todas as colunas detalhadas
-            let csv = 'ID,Tela Origem,Tela Destino,Tecla PF,Tipo de AÃ§Ã£o,Mensagem,Data CriaÃ§Ã£o,PF TXT Origem,PF TXT Destino\n';
+            // Cabeçalho com todas as colunas detalhadas
+            let csv = 'ID,Tela Origem,Tela Destino,Tecla PF,Tipo de Ação,Mensagem,Data Criação,PF TXT Origem,PF TXT Destino\n';
             
             app.navigationRules.forEach((rule, index) => {
                 const fromScreen = app.screens.find(s => s.id === rule.fromScreen);
@@ -4738,15 +4738,15 @@
                 const fromScreenName = fromScreen?.name || rule.originalFromScreenName || 'UNKNOWN';
                 const toScreenName = (rule.action === 'message' || rule.action === 'clear' || rule.action === 'clear_msg') ? '' : (toScreen?.name || rule.originalToScreenName || 'UNKNOWN');
                 const message = (rule.message || '').replace(/"/g, '""');
-                const actionText = rule.action === 'navigate' ? 'NavegaÃ§Ã£o' : 
+                const actionText = rule.action === 'navigate' ? 'Navegação' : 
                                   rule.action === 'navigate_msg' ? 'Navegar + Mensagem' :
                                   rule.action === 'message' ? 'Mensagem' :
                                   rule.action === 'clear' ? 'Limpar Campos' :
                                   rule.action === 'clear_msg' ? 'Limpar + Mensagem' : 'Desconhecido';
                 
-                // Verificar se a tecla estÃ¡ definida no TXT de origem
-                const pfKeyInSourceTXT = fromScreen?.pfKeys?.[rule.key] ? 'Sim' : 'NÃ£o';
-                const pfKeyInDestTXT = toScreen?.pfKeys?.[rule.key] ? 'Sim' : 'NÃ£o';
+                // Verificar se a tecla está definida no TXT de origem
+                const pfKeyInSourceTXT = fromScreen?.pfKeys?.[rule.key] ? 'Sim' : 'Não';
+                const pfKeyInDestTXT = toScreen?.pfKeys?.[rule.key] ? 'Sim' : 'Não';
                 
                 csv += `"${index + 1}",`;
                 csv += `"${fromScreenName}",`;
@@ -4772,7 +4772,7 @@
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Title>Regras de NavegaÃ§Ã£o CICS</Title>
+  <Title>Regras de Navegação CICS</Title>
   <Author>CICS Terminal Simulator</Author>
   <Created>${new Date().toISOString()}</Created>
  </DocumentProperties>
@@ -4795,7 +4795,7 @@
    <Alignment ss:Horizontal="Center"/>
   </Style>
  </Styles>
- <Worksheet ss:Name="Regras de NavegaÃ§Ã£o">
+ <Worksheet ss:Name="Regras de Navegação">
   <Table>
    <Column ss:Width="40"/>
    <Column ss:Width="150"/>
@@ -4811,9 +4811,9 @@
     <Cell><Data ss:Type="String">Tela Origem</Data></Cell>
     <Cell><Data ss:Type="String">Tela Destino</Data></Cell>
     <Cell><Data ss:Type="String">Tecla PF</Data></Cell>
-    <Cell><Data ss:Type="String">Tipo de AÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Tipo de Ação</Data></Cell>
     <Cell><Data ss:Type="String">Mensagem</Data></Cell>
-    <Cell><Data ss:Type="String">Data CriaÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Data Criação</Data></Cell>
     <Cell><Data ss:Type="String">PF no TXT Origem</Data></Cell>
     <Cell><Data ss:Type="String">PF no TXT Destino</Data></Cell>
    </Row>`;
@@ -4825,15 +4825,15 @@
                 const fromScreenName = fromScreen?.name || rule.originalFromScreenName || 'UNKNOWN';
                 const toScreenName = (rule.action === 'message' || rule.action === 'clear' || rule.action === 'clear_msg') ? '' : (toScreen?.name || rule.originalToScreenName || 'UNKNOWN');
                 const message = (rule.message || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const actionText = rule.action === 'navigate' ? 'NavegaÃ§Ã£o' : 
+                const actionText = rule.action === 'navigate' ? 'Navegação' : 
                                   rule.action === 'navigate_msg' ? 'Navegar + Mensagem' :
                                   rule.action === 'message' ? 'Mensagem' :
                                   rule.action === 'clear' ? 'Limpar Campos' :
                                   rule.action === 'clear_msg' ? 'Limpar + Mensagem' : 'Desconhecido';
                 const styleID = (rule.action === 'navigate' || rule.action === 'navigate_msg') ? 'Navigate' : 'Message';
                 
-                const pfKeyInSourceTXT = fromScreen?.pfKeys?.[rule.key] ? 'Sim' : 'NÃ£o';
-                const pfKeyInDestTXT = toScreen?.pfKeys?.[rule.key] ? 'Sim' : 'NÃ£o';
+                const pfKeyInSourceTXT = fromScreen?.pfKeys?.[rule.key] ? 'Sim' : 'Não';
+                const pfKeyInDestTXT = toScreen?.pfKeys?.[rule.key] ? 'Sim' : 'Não';
                 
                 html += `
    <Row ss:StyleID="${styleID}">
@@ -4869,7 +4869,7 @@
    <Column ss:Width="200"/>
    <Column ss:Width="150"/>
    <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">InformaÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Informação</Data></Cell>
     <Cell><Data ss:Type="String">Valor</Data></Cell>
    </Row>
    <Row>
@@ -4881,11 +4881,11 @@
     <Cell><Data ss:Type="Number">${app.navigationRules.length}</Data></Cell>
    </Row>
    <Row>
-    <Cell><Data ss:Type="String">Data de ExportaÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Data de Exportação</Data></Cell>
     <Cell><Data ss:Type="String">${new Date().toLocaleString('pt-BR')}</Data></Cell>
    </Row>
    <Row>
-    <Cell><Data ss:Type="String">Regras de NavegaÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Regras de Navegação</Data></Cell>
     <Cell><Data ss:Type="Number">${app.navigationRules.filter(r => r.action === 'navigate').length}</Data></Cell>
    </Row>
    <Row>
@@ -4936,7 +4936,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>DocumentaÃ§Ã£o - Regras de NavegaÃ§Ã£o</title>
+    <title>Documentação - Regras de Navegação</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -4999,22 +4999,22 @@
     </style>
 </head>
 <body>
-    <h1>ðŸ“‹ DocumentaÃ§Ã£o - Regras de NavegaÃ§Ã£o CICS</h1>
+    <h1>📋 Documentação - Regras de Navegação CICS</h1>
     
     <div class="info">
-        <strong>Data de ExportaÃ§Ã£o:</strong> ${new Date().toLocaleString()}<br>
+        <strong>Data de Exportação:</strong> ${new Date().toLocaleString()}<br>
         <strong>Total de Telas:</strong> ${app.screens.length}<br>
         <strong>Total de Regras:</strong> ${app.navigationRules.length}
     </div>
 
-    <h2>ðŸ“Š Lista de Regras</h2>
+    <h2>📊 Lista de Regras</h2>
     <table>
         <thead>
             <tr>
                 <th>#</th>
                 <th>Tela Origem</th>
                 <th>Tecla</th>
-                <th>AÃ§Ã£o</th>
+                <th>Ação</th>
                 <th>Tela Destino</th>
                 <th>Mensagem</th>
             </tr>
@@ -5051,7 +5051,7 @@
             downloadFile(html, 'navigation-rules-doc.html', 'text/html');
         }
 
-        // ========== EXPORTAÃ‡ÃƒO DE VALIDAÃ‡Ã•ES ==========
+        // ========== EXPORTAÃ‡ÃƒO DE VALIDAÇÕES ==========
         
         function exportValidationsAsJSON() {
             const validationConfig = {
@@ -5405,7 +5405,7 @@
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Title>ConfiguraÃ§Ãµes de ValidaÃ§Ã£o</Title>
+  <Title>Configurações de Validação</Title>
   <Author>CICS Terminal Simulator</Author>
   <Created>${new Date().toISOString()}</Created>
  </DocumentProperties>
@@ -5428,7 +5428,7 @@
    <Alignment ss:Horizontal="Center"/>
   </Style>
  </Styles>
- <Worksheet ss:Name="ValidaÃ§Ãµes">
+ <Worksheet ss:Name="Validações">
   <Table>
    <Column ss:Width="150"/>
    <Column ss:Width="200"/>
@@ -5446,16 +5446,16 @@
    <Row ss:StyleID="Header">
     <Cell><Data ss:Type="String">Tela</Data></Cell>
     <Cell><Data ss:Type="String">Campo</Data></Cell>
-    <Cell><Data ss:Type="String">VariÃ¡vel BMS</Data></Cell>
+    <Cell><Data ss:Type="String">Variável BMS</Data></Cell>
     <Cell><Data ss:Type="String">Working Storage</Data></Cell>
     <Cell><Data ss:Type="String">PIC</Data></Cell>
     <Cell><Data ss:Type="String">Tipo</Data></Cell>
     <Cell><Data ss:Type="String">Tamanho</Data></Cell>
     <Cell><Data ss:Type="String">Linha</Data></Cell>
-    <Cell><Data ss:Type="String">Coluna InÃ­cio</Data></Cell>
+    <Cell><Data ss:Type="String">Coluna Início</Data></Cell>
     <Cell><Data ss:Type="String">Coluna Fim</Data></Cell>
-    <Cell><Data ss:Type="String">ObrigatÃ³rio</Data></Cell>
-    <Cell><Data ss:Type="String">ValidaÃ§Ãµes</Data></Cell>
+    <Cell><Data ss:Type="String">Obrigatório</Data></Cell>
+    <Cell><Data ss:Type="String">Validações</Data></Cell>
     <Cell><Data ss:Type="String">Mensagem de Erro</Data></Cell>
    </Row>`;
             
@@ -5463,27 +5463,27 @@
                 screen.fields.forEach(field => {
                     const styleID = field.isRequired ? 'Required' : 'Optional';
                     
-                    // VariÃ¡vel BMS e Working Storage
+                    // Variável BMS e Working Storage
                     const bmsVar = field.bmsVariable || field.label?.toUpperCase().replace(/[^A-Z0-9]/g, '') + 'I';
                     const workingVar = 'WS-' + (field.bmsVariable || field.label?.toUpperCase().replace(/[^A-Z0-9]/g, ''));
                     
-                    // Tipo para exibiÃ§Ã£o (jÃ¡ vem como 'alpha' ou 'numeric')
+                    // Tipo para exibição (já vem como 'alpha' ou 'numeric')
                     const tipoExibicao = field.type || 'alpha';
                     
                     // PIC COBOL - numeric = 9, alpha = X
                     const picType = (field.type === 'numeric') ? '9' : 'X';
                     const picClause = `PIC ${picType}(${String(field.length).padStart(3, '0')})`;
                     
-                    // Linha comeÃ§a em 1 (nÃ£o em 0)
+                    // Linha começa em 1 (não em 0)
                     const linha = field.row + 1;
-                    // Coluna comeÃ§a em 1 (nÃ£o em 0)
+                    // Coluna começa em 1 (não em 0)
                     const colunaInicio = field.col + 1;
-                    // Coluna fim = coluna inÃ­cio + tamanho - 1
+                    // Coluna fim = coluna início + tamanho - 1
                     const colunaFim = colunaInicio + field.length - 1;
-                    // Tamanho calculado = coluna fim - coluna inÃ­cio
+                    // Tamanho calculado = coluna fim - coluna início
                     const tamanho = colunaFim - colunaInicio;
                     
-                    // Se o campo tem validaÃ§Ãµes, criar uma linha para cada validaÃ§Ã£o
+                    // Se o campo tem validações, criar uma linha para cada validação
                     if (field.validationRules && field.validationRules.length > 0) {
                         field.validationRules.forEach((rule, index) => {
                             const validationType = `${rule.type}${rule.value ? `: ${rule.value}` : ''}`;
@@ -5501,13 +5501,13 @@
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${linha}</Data></Cell>
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${colunaInicio}</Data></Cell>
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${colunaFim}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${field.isRequired ? 'Sim' : 'NÃ£o'}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="String">${field.isRequired ? 'Sim' : 'Não'}</Data></Cell>
     <Cell><Data ss:Type="String">${validationType}</Data></Cell>
     <Cell><Data ss:Type="String">${validationMessage}</Data></Cell>
    </Row>`;
                         });
                     } else {
-                        // Campo sem validaÃ§Ãµes - criar uma linha apenas com as informaÃ§Ãµes do campo
+                        // Campo sem validações - criar uma linha apenas com as informações do campo
                         html += `
    <Row ss:StyleID="${styleID}">
     <Cell><Data ss:Type="String">${screen.name}</Data></Cell>
@@ -5520,7 +5520,7 @@
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${linha}</Data></Cell>
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${colunaInicio}</Data></Cell>
     <Cell ss:StyleID="Center"><Data ss:Type="Number">${colunaFim}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${field.isRequired ? 'Sim' : 'NÃ£o'}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="String">${field.isRequired ? 'Sim' : 'Não'}</Data></Cell>
     <Cell><Data ss:Type="String"></Data></Cell>
     <Cell><Data ss:Type="String"></Data></Cell>
    </Row>`;
@@ -5531,11 +5531,11 @@
             html += `
   </Table>
  </Worksheet>
- <Worksheet ss:Name="Teclas de ValidaÃ§Ã£o">
+ <Worksheet ss:Name="Teclas de Validação">
   <Table>
    <Column ss:Width="200"/>
    <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Teclas que Acionam ValidaÃ§Ã£o</Data></Cell>
+    <Cell><Data ss:Type="String">Teclas que Acionam Validação</Data></Cell>
    </Row>`;
             
             (app.validationKeys || []).forEach(key => {
@@ -5555,7 +5555,7 @@
         }
 
         function exportValidationsAsCSV() {
-            let csv = 'Tela,Campo,VariÃ¡vel BMS,Tipo,Tamanho,Linha,Coluna,ObrigatÃ³rio,ValidaÃ§Ãµes\n';
+            let csv = 'Tela,Campo,Variável BMS,Tipo,Tamanho,Linha,Coluna,Obrigatório,Validações\n';
             
             app.screens.forEach(screen => {
                 screen.fields.forEach(field => {
@@ -5570,12 +5570,12 @@
                     csv += `"${field.length}",`;
                     csv += `"${field.row}",`;
                     csv += `"${field.col}",`;
-                    csv += `"${field.isRequired ? 'Sim' : 'NÃ£o'}",`;
+                    csv += `"${field.isRequired ? 'Sim' : 'Não'}",`;
                     csv += `"${validations}"\n`;
                 });
             });
             
-            csv += `\n\nTeclas de ValidaÃ§Ã£o:\n`;
+            csv += `\n\nTeclas de Validação:\n`;
             (app.validationKeys || []).forEach(key => {
                 csv += `"${key}"\n`;
             });
@@ -5584,7 +5584,7 @@
             closeValidationExportModal();
         }
 
-        // â”€â”€â”€ FunÃ§Ãµes auxiliares para exportaÃ§Ã£o BMS limpa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Funções auxiliares para exportação BMS limpa ───────────────────────────
 
         // Extrai somente as linhas do bloco DFHMSD (antes do primeiro DFHMDI)
         function _extractDFHMSDPart(bmsText) {
@@ -5594,7 +5594,7 @@
             return lines.slice(0, idx).join('\n') + '\n';
         }
 
-        // Extrai de DFHMDI atÃ© antes de DFHMSD TYPE=FINAL
+        // Extrai de DFHMDI até antes de DFHMSD TYPE=FINAL
         // Substitui o nome no DFHMDI pelo nome real da tela (screen opcional)
         function _extractDFHMDIPart(bmsText, screen) {
             var lines = bmsText.split('\n');
@@ -5621,46 +5621,46 @@
                 if (/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(lines[i])) { idx = i; break; }
             }
             if (idx < 0) return bmsText;
-            // remover tambÃ©m linhas em branco imediatamente antes
+            // remover também linhas em branco imediatamente antes
             while (idx > 0 && lines[idx - 1].trim() === '') idx--;
             return lines.slice(0, idx).join('\n') + '\n';
         }
 
-        // Remove linhas de comentÃ¡rio geradas pelo sistema (nÃ£o as do BMS original)
+        // Remove linhas de comentário geradas pelo sistema (não as do BMS original)
         function _stripBMSSystemComments(bmsText) {
             return bmsText.split('\n').filter(function(line) {
                 if (!/^\s*\*/.test(line)) return true;
                 if (/^\*\s*={4,}/.test(line))                                      return false;
                 if (/^\*\s*(BMS MAP|Generated on|Tela:|Label var)/i.test(line))    return false;
-                if (/^\*\s{6}(Campo:|Field:|ValidaÃ§|Validation|CAMPO OBRIG|REQUIRED FIELD|Screen:)/i.test(line)) return false;
+                if (/^\*\s{6}(Campo:|Field:|Validaç|Validation|CAMPO OBRIG|REQUIRED FIELD|Screen:)/i.test(line)) return false;
                 return true;
             }).join('\n');
         }
 
         // Normaliza labels de um BMS: trunca nomes > 6 chars e garante mnemonic na col 9
-        // Preserva o char de continuaÃ§Ã£o na col 72 do original (- ou espaÃ§o)
+        // Preserva o char de continuação na col 72 do original (- ou espaço)
         function _normalizeBMSLabels(bmsText) {
             return bmsText.split('\n').map(function(line) {
-                // Preservar char de continuaÃ§Ã£o em col 72 (Ã­ndice 71)
+                // Preservar char de continuação em col 72 (índice 71)
                 var cont72 = line.length >= 72 ? line.charAt(71) : '';
                 var body   = line.length >= 72 ? line.substring(0, 71) : line;
 
-                // Linha COM label + mnemonic DFH: truncar label a 6 e garantir 2 espaÃ§os
+                // Linha COM label + mnemonic DFH: truncar label a 6 e garantir 2 espaços
                 var r = body.replace(/^([A-Z][A-Z0-9]{0,7})(\s+)(DFHM(?:SD|DI|DF)\b)/i, function(_, lbl, _sp, mnem) {
                     return lbl.substring(0, 6).padEnd(6) + '  ' + mnem;
                 });
                 if (r === body) {
-                    // Linha SEM label: garantir exatamente 8 espaÃ§os antes do mnemonic (col 9)
+                    // Linha SEM label: garantir exatamente 8 espaços antes do mnemonic (col 9)
                     r = body.replace(/^\s+(DFHM(?:SD|DI|DF)\b)/i, '        $1');
                 }
 
-                // Recolocar o char de continuaÃ§Ã£o original na col 72
+                // Recolocar o char de continuação original na col 72
                 if (cont72 && cont72 !== ' ') return r.padEnd(71) + cont72;
                 return r;
             }).join('\n');
         }
 
-        // Gera bloco DFHMSD sintÃ©tico (sem comentÃ¡rios) a partir do nome da tela
+        // Gera bloco DFHMSD sintético (sem comentários) a partir do nome da tela
         function _syntheticDFHMSD(screenName) {
             function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
             var mapName = screenName.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -5680,32 +5680,32 @@
             if (!screens || screens.length === 0) return '';
             function fmt(c, cont) { return c.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
 
-            // â”€â”€ tela Ãºnica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── tela única ────────────────────────────────────────────────────
             if (screens.length === 1) {
                 var s = screens[0];
                 if (s.bmsSource) {
-                    // NÃ£o editada: usar bmsSource normalizado (garante col 9 para mnemonics)
+                    // Não editada: usar bmsSource normalizado (garante col 9 para mnemonics)
                     var bms = _normalizeBMSLabels(s.bmsSource);
                     if (!/DFHMSD\s+TYPE\s*=\s*FINAL/i.test(bms)) {
                         bms += '\n' + fmt('        DFHMSD TYPE=FINAL') + fmt('        END');
                     }
                     return bms;
                 }
-                // Editada ou nÃ£o importada: gerar limpo via generateBMSCode
+                // Editada ou não importada: gerar limpo via generateBMSCode
                 return _stripBMSSystemComments(generateBMSCode(s));
             }
 
-            // â”€â”€ mÃºltiplas telas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            // EstratÃ©gia confiÃ¡vel: gerar cada tela via generateBMSCode
-            // (os dados dos campos sÃ£o sempre corretos; _bmsHeader preserva o cabeÃ§alho original)
+            // ── múltiplas telas ───────────────────────────────────────────────
+            // Estratégia confiável: gerar cada tela via generateBMSCode
+            // (os dados dos campos são sempre corretos; _bmsHeader preserva o cabeçalho original)
             // Primeira tela: manter DFHMSD + DFHMDI + campos (sem TYPE=FINAL)
-            // Demais telas:  extrair sÃ³ DFHMDI + campos (sem DFHMSD duplicado, sem TYPE=FINAL)
-            // Ao final: emitir um Ãºnico TYPE=FINAL + END
+            // Demais telas:  extrair só DFHMDI + campos (sem DFHMSD duplicado, sem TYPE=FINAL)
+            // Ao final: emitir um único TYPE=FINAL + END
             var bms = '';
             var dfhmsdEmitted = false;
 
             screens.forEach(function(screen, i) {
-                // Gerar cÃ³digo limpo para esta tela
+                // Gerar código limpo para esta tela
                 var code;
                 if (screen.bmsSource && /\bDFHMDI\b/i.test(screen.bmsSource)) {
                     code = _stripBMSFinalBlock(_normalizeBMSLabels(screen.bmsSource));
@@ -5714,7 +5714,7 @@
                 }
 
                 if (!dfhmsdEmitted) {
-                    // Primeira tela: emitir DFHMSD (do cÃ³digo ou sintÃ©tico) + DFHMDI com nome correto
+                    // Primeira tela: emitir DFHMSD (do código ou sintético) + DFHMDI com nome correto
                     if (/\bDFHMSD\b/i.test(code)) {
                         bms += _extractDFHMSDPart(code);
                     } else {
@@ -5723,19 +5723,19 @@
                     dfhmsdEmitted = true;
                     bms += _extractDFHMDIPart(code, screen);
                 } else {
-                    // Demais telas: sÃ³ o bloco DFHMDI com nome correto
+                    // Demais telas: só o bloco DFHMDI com nome correto
                     bms += _extractDFHMDIPart(code, screen);
                 }
             });
 
-            // FinalizaÃ§Ã£o Ãºnica
+            // Finalização única
             bms += fmt('        DFHMSD TYPE=FINAL');
             bms += fmt('        END');
             return bms;
         }
 
-        // â”€â”€â”€ exportBMSWithOptions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // Chamado pelos botÃµes do modal de exportaÃ§Ã£o BMS
+        // ─── exportBMSWithOptions ────────────────────────────────────────────────────
+        // Chamado pelos botões do modal de exportação BMS
         function exportBMSWithOptions(includeLabels) {
             var exportAll = document.getElementById('bmsExportScopeAll') &&
                             document.getElementById('bmsExportScopeAll').checked;
@@ -5749,7 +5749,7 @@
 
             var screensToExport;
             if (exportAll) {
-                // Ler quais checkboxes estÃ£o marcados
+                // Ler quais checkboxes estão marcados
                 var checked = [];
                 var items = document.getElementById('bmsExportMapItems');
                 if (items) {
@@ -5771,22 +5771,22 @@
 
             var bmsText = _buildCleanBMSExport(screensToExport);
 
-            // Normalizar para transferÃªncia mainframe:
-            // registro de 80 chars: cols 1-71 conteÃºdo, col 72 continuaÃ§Ã£o, cols 73-80 sequÃªncia (brancos), CRLF
+            // Normalizar para transferência mainframe:
+            // registro de 80 chars: cols 1-71 conteúdo, col 72 continuação, cols 73-80 sequência (brancos), CRLF
             bmsText = bmsText.split('\n').map(function(line) {
                 // Remover \r residual e cols 73-80 (sequence field) do original
                 line = line.replace(/\r$/, '').substring(0, 80);
                 if (line.length === 0) return '';
-                // Preservar qualquer char de continuaÃ§Ã£o que jÃ¡ esteja na col 72
+                // Preservar qualquer char de continuação que já esteja na col 72
                 var cont = line.length >= 72 ? line.charAt(71) : ' ';
-                // Se nÃ£o era continuaÃ§Ã£o vÃ¡lida e a linha termina com ',' Ã© continuaÃ§Ã£o
+                // Se não era continuação válida e a linha termina com ',' é continuação
                 if (cont === ' ' && line.substring(0, 71).trimEnd().endsWith(',')) cont = '-';
-                // Garantir que col 72 sÃ³ seja '-' ou ' '
+                // Garantir que col 72 só seja '-' ou ' '
                 if (cont !== '-') cont = ' ';
                 return line.substring(0, 71).padEnd(71) + cont + '        ';
             }).join('\r\n');
 
-            // Nome do arquivo â€” sempre .txt para compatibilidade de transferÃªncia
+            // Nome do arquivo — sempre .txt para compatibilidade de transferência
             var fileName;
             if (screensToExport.length > 1) {
                 var fi = screensToExport.find(function(s) { return s.bmsImported && s._bmsHeader; });
@@ -5804,26 +5804,26 @@
             closeBMSOptionsModal();
         }
 
-        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─────────────────────────────────────────────────────────────────────────────
 
         function exportValidationsAsBMS(includeLabels = false) {
-            // FunÃ§Ã£o auxiliar para formatar linha BMS com 72 colunas e continuaÃ§Ã£o
+            // Função auxiliar para formatar linha BMS com 72 colunas e continuação
             function formatBMSLine(content, continuation = false) {
                 const line = content.padEnd(71);
                 return line + (continuation ? '-' : ' ') + '\n';
             }
             
-            // FunÃ§Ã£o para gerar DFHMDF de texto, quebrando em mÃºltiplos DFHMDF se necessÃ¡rio
+            // Função para gerar DFHMDF de texto, quebrando em múltiplos DFHMDF se necessário
             function generateTextDFHMDF(text, row, col, includeVar = false, varName = '') {
                 let result = '';
                 const screenWidth = 80; // Largura da tela CICS
-                const maxBMSLine = 71; // MÃ¡ximo de caracteres antes do hÃ­fen/espaÃ§o
+                const maxBMSLine = 71; // Máximo de caracteres antes do hífen/espaço
                 let currentCol = col;
                 let remainingText = text;
                 let isFirstDFHMDF = true;
                 
                 while (remainingText.length > 0) {
-                    // Calcular quanto cabe na tela nesta posiÃ§Ã£o
+                    // Calcular quanto cabe na tela nesta posição
                     const availableSpace = screenWidth - currentCol;
                     
                     if (availableSpace <= 0) {
@@ -5834,7 +5834,7 @@
                     // Montar a linha BMS para calcular o tamanho
                     const prefix = includeVar && isFirstDFHMDF ? varName.padEnd(6) : '       ';
                     
-                    // Tentar encaixar o mÃ¡ximo de texto possÃ­vel
+                    // Tentar encaixar o máximo de texto possível
                     let maxTextLength = availableSpace;
                     let foundFit = false;
                     
@@ -5860,14 +5860,14 @@
                     }
                     
                     if (maxTextLength <= 0) {
-                        console.error(`NÃ£o foi possÃ­vel encaixar texto na linha ${row + 1}, col ${currentCol + 1}`);
+                        console.error(`Não foi possível encaixar texto na linha ${row + 1}, col ${currentCol + 1}`);
                         break;
                     }
                     
                     // Pegar o chunk que cabe
                     let chunk = remainingText.substring(0, maxTextLength);
                     
-                    // Se nÃ£o for o Ãºltimo pedaÃ§o, tentar quebrar em um espaÃ§o
+                    // Se não for o último pedaço, tentar quebrar em um espaço
                     if (maxTextLength < remainingText.length) {
                         const lastSpace = chunk.lastIndexOf(' ');
                         if (lastSpace > 0) {
@@ -5875,21 +5875,21 @@
                         }
                     }
                     
-                    // Remover espaÃ§os do inÃ­cio (exceto no primeiro DFHMDF)
+                    // Remover espaços do início (exceto no primeiro DFHMDF)
                     if (!isFirstDFHMDF) {
                         chunk = chunk.trimStart();
                     }
                     
                     const actualLength = chunk.length;
                     
-                    // Gerar o DFHMDF para este pedaÃ§o
+                    // Gerar o DFHMDF para este pedaço
                     const prefix2 = includeVar && isFirstDFHMDF ? varName.padEnd(6) : '       ';
                     result += formatBMSLine(`${prefix2} DFHMDF POS=(${row + 1},${currentCol + 1}),`, true);
                     result += formatBMSLine(`          LENGTH=${actualLength},`, true);
                     result += formatBMSLine(`          ATTRB=ASKIP,`, true);
                     result += formatBMSLine(`          INITIAL='${chunk}'`);
                     
-                    // Atualizar para prÃ³xima iteraÃ§Ã£o
+                    // Atualizar para próxima iteração
                     remainingText = remainingText.substring(chunk.length).trimStart();
                     currentCol += actualLength;
                     isFirstDFHMDF = false;
@@ -5911,7 +5911,7 @@
                 const mapName = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
                 const mapSetName = mapName + 'M';
                 
-                // DFHMSD - PadrÃ£o com cada comando em uma linha
+                // DFHMSD - Padrão com cada comando em uma linha
                 bms += formatBMSLine(`${mapName.padEnd(6)} DFHMSD LANG=COBOL,`, true);
                 bms += formatBMSLine(`              MODE=INOUT,`, true);
                 bms += formatBMSLine(`              STORAGE=AUTO,`, true);
@@ -5924,7 +5924,7 @@
                 bms += `*      Screen: ${screen.name}\n`;
                 bms += `*\n`;
                 
-                // Capturar todo o texto estÃ¡tico da tela (usando screen.data)
+                // Capturar todo o texto estático da tela (usando screen.data)
                 const staticTexts = [];
                 
                 for (let row = 0; row < screen.data.length; row++) {
@@ -5935,7 +5935,7 @@
                     while (col < screen.data[row].length) {
                         const char = screen.data[row][col];
                         
-                        // Verifica se nÃ£o Ã© um campo editÃ¡vel nesta posiÃ§Ã£o
+                        // Verifica se não é um campo editável nesta posição
                         const isField = screen.fields.some(f => 
                             f.row === row && col >= f.col && col < f.col + f.length
                         );
@@ -5970,7 +5970,7 @@
                     }
                 }
                 
-                // Agrupar labels da mesma linha (se nÃ£o tiver variÃ¡vel)
+                // Agrupar labels da mesma linha (se não tiver variável)
                 const groupedLabels = [];
                 if (!includeLabels) {
                     const labelsByRow = {};
@@ -5992,7 +5992,7 @@
                             const prevLabel = labelsInRow[i - 1];
                             const currentLabel = labelsInRow[i];
                             
-                            // Verificar se hÃ¡ algum campo editÃ¡vel entre este label e o anterior
+                            // Verificar se há algum campo editável entre este label e o anterior
                             const hasFieldBetween = screen.fields.some(f => 
                                 f.row === parseInt(row) && 
                                 f.col >= (prevLabel.col + prevLabel.length) && 
@@ -6000,16 +6000,16 @@
                             );
                             
                             if (hasFieldBetween) {
-                                // HÃ¡ campo entre eles, finalizar grupo atual e criar novo
+                                // Há campo entre eles, finalizar grupo atual e criar novo
                                 groupedLabels.push(createGroupedLabel(currentGroup, parseInt(row)));
                                 currentGroup = [currentLabel];
                             } else {
-                                // NÃ£o hÃ¡ campo, adicionar ao grupo atual
+                                // Não há campo, adicionar ao grupo atual
                                 currentGroup.push(currentLabel);
                             }
                         }
                         
-                        // Adicionar o Ãºltimo grupo
+                        // Adicionar o último grupo
                         if (currentGroup.length > 0) {
                             groupedLabels.push(createGroupedLabel(currentGroup, parseInt(row)));
                         }
@@ -6021,12 +6021,12 @@
                         const lastCol = lastLabel.col + lastLabel.length;
                         const totalLength = lastCol - firstCol;
                         
-                        // Reconstruir o texto completo com espaÃ§os
+                        // Reconstruir o texto completo com espaços
                         let fullText = '';
                         let currentPos = firstCol;
                         
                         labels.forEach(label => {
-                            // Adicionar espaÃ§os atÃ© a posiÃ§Ã£o do label
+                            // Adicionar espaços até a posição do label
                             while (currentPos < label.col) {
                                 fullText += ' ';
                                 currentPos++;
@@ -6044,7 +6044,7 @@
                         };
                     }
                 } else {
-                    // Com variÃ¡vel, manter labels separados
+                    // Com variável, manter labels separados
                     staticTexts.forEach((label, idx) => {
                         groupedLabels.push({
                             ...label,
@@ -6088,10 +6088,10 @@
                     return a.col - b.col;
                 });
                 
-                // Gerar definiÃ§Ãµes BMS na ordem
+                // Gerar definições BMS na ordem
                 allElements.forEach(element => {
                     if (element.type === 'label') {
-                        // Labels - usar funÃ§Ã£o que quebra em mÃºltiplos DFHMDF se necessÃ¡rio
+                        // Labels - usar função que quebra em múltiplos DFHMDF se necessário
                         bms += generateTextDFHMDF(
                             element.text, 
                             element.row, 
@@ -6100,11 +6100,11 @@
                             includeLabels ? element.name : ''
                         );
                     } else {
-                        // Campos editÃ¡veis - cada parÃ¢metro em uma linha
+                        // Campos editáveis - cada parâmetro em uma linha
                         const field = element.field;
                         const attrb = getBMSAttrString(field);
                         
-                        // campo: sem comentÃ¡rio gerado pelo sistema
+                        // campo: sem comentário gerado pelo sistema
                         bms += formatBMSLine(`${element.name.padEnd(6)} DFHMDF POS=(${element.row + 1},${element.col + 1}),`, true);
                         bms += formatBMSLine(`              LENGTH=${field.length},`, true);
                         bms += formatBMSLine(`              ATTRB=${attrb}`);
@@ -6115,8 +6115,8 @@
                         bms += formatBMSLine(`              LENGTH=0,`, true);
                         bms += formatBMSLine(`              ATTRB=ASKIP`);
                         
-                        // ComentÃ¡rios sobre validaÃ§Ãµes
-                        // (removidos da saÃ­da â€” nÃ£o gerar marcaÃ§Ãµes do sistema)
+                        // Comentários sobre validações
+                        // (removidos da saída — não gerar marcações do sistema)
                     }
                 });
                 
@@ -6174,7 +6174,7 @@
             closeValidationExportModal();
         }
 
-        // Carregar demo completa com mÃºltiplas telas
+        // Carregar demo completa com múltiplas telas
         function loadExampleScreen() {
             // Tela 1: Menu Principal
             const menuContent = `
@@ -6259,8 +6259,8 @@
             app.screens.push(cadastroScreen);
             app.screens.push(consultaScreen);
             
-            // Criar regras de navegaÃ§Ã£o automÃ¡ticas
-            // Do Menu para Cadastro (opÃ§Ã£o 1)
+            // Criar regras de navegação automáticas
+            // Do Menu para Cadastro (opção 1)
             app.navigationRules.push({
                 id: Date.now() + Math.random(),
                 fromScreen: menuScreen.id,
@@ -6300,11 +6300,11 @@
                 toScreen: null,
                 key: 'ENTER',
                 action: 'message',
-                message: 'Cliente gravado com sucesso! CÃ³digo: 000123',
+                message: 'Cliente gravado com sucesso! Código: 000123',
                 label: 'GRAVAR'
             });
             
-            // Do Menu para Consulta (opÃ§Ã£o 2 + ENTER)
+            // Do Menu para Consulta (opção 2 + ENTER)
             app.navigationRules.push({
                 id: Date.now() + Math.random(),
                 fromScreen: menuScreen.id,
@@ -6312,7 +6312,7 @@
                 key: 'PF8',
                 action: 'navigate',
                 message: '',
-                label: 'PRÃ“XIMO'
+                label: 'PRÓXIMO'
             });
             
             // Da Consulta para Menu (PF3)
@@ -6326,28 +6326,28 @@
                 label: 'VOLTAR'
             });
             
-            // Adicionar validaÃ§Ãµes nos campos do cadastro
-            const codigoField = cadastroScreen.fields.find(f => f.label === 'CÃ“DIGO' || f.row === 4);
+            // Adicionar validações nos campos do cadastro
+            const codigoField = cadastroScreen.fields.find(f => f.label === 'CÓDIGO' || f.row === 4);
             if (codigoField) {
                 codigoField.isRequired = true;
-                codigoField.addValidation('notZeros', null, 'CÃ³digo nÃ£o pode ser zeros');
+                codigoField.addValidation('notZeros', null, 'Código não pode ser zeros');
             }
             
             const nomeField = cadastroScreen.fields.find(f => f.label === 'NOME' || (f.row === 6 && f.col > 10));
             if (nomeField) {
                 nomeField.isRequired = true;
-                nomeField.addValidation('minLength', 3, 'Nome deve ter no mÃ­nimo 3 caracteres');
+                nomeField.addValidation('minLength', 3, 'Nome deve ter no mínimo 3 caracteres');
             }
             
             const cpfField = cadastroScreen.fields.find(f => f.label === 'CPF/CNPJ' || (f.row === 8 && f.type === 'numeric'));
             if (cpfField) {
                 cpfField.isRequired = true;
-                cpfField.addValidation('exactLength', 11, 'CPF deve ter 11 dÃ­gitos');
+                cpfField.addValidation('exactLength', 11, 'CPF deve ter 11 dígitos');
             }
             
             const emailField = cadastroScreen.fields.find(f => f.label === 'EMAIL' || (f.row === 12 && f.col > 40));
             if (emailField) {
-                emailField.addValidation('email', null, 'Email invÃ¡lido');
+                emailField.addValidation('email', null, 'Email inválido');
             }
             
             // Atualizar interface
@@ -6356,16 +6356,16 @@
             loadScreen(0);
             
             // Mostrar mensagem de boas-vindas
-            showMessage('ðŸŽ‰ Demo carregada! 3 telas com navegaÃ§Ã£o e validaÃ§Ãµes configuradas. Explore e teste!', 'success');
+            showMessage('🎉 Demo carregada! 3 telas com navegação e validações configuradas. Explore e teste!', 'success');
         }
 
-        // Inicializar aplicaÃ§Ã£o
+        // Inicializar aplicação
         window.onload = init;
     
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ═══════════════════════════════════════════════════
         // IDE LAYOUT FUNCTIONS
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ═══════════════════════════════════════════════════
 
         function switchSidebarTab(tabName) {
             document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
@@ -6610,7 +6610,7 @@
             L += '           END-EVALUATE.\n';
             L += '      *\n';
 
-            /* â”€â”€ 3000-ENTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── 3000-ENTER ─────────────────────────────────── */
             var enterRule = keyRules.find(function(r){ return r.key === 'ENTER'; });
             var enterAct  = enterRule ? (enterRule.action || 'navigate') : 'noop';
             var enterVal  = valKeys.indexOf('ENTER') >= 0 || fields.some(function(f){ return f.isRequired; });
@@ -6638,7 +6638,7 @@
             }
             L += '      *\n';
 
-            /* â”€â”€ Paragrafos PF1-PF12 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── Paragrafos PF1-PF12 ────────────────────────── */
             ['PF1','PF2','PF3','PF4','PF5','PF6','PF7','PF8','PF9','PF10','PF11','PF12'].forEach(function(k) {
                 var rule = keyRules.find(function(r){ return r.key === k; });
                 if (!rule) return;
@@ -6658,7 +6658,7 @@
                 L += '      *\n';
             });
 
-            /* â”€â”€ 4000-VALIDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── 4000-VALIDAR ───────────────────────────────── */
             var reqFields  = fields.filter(function(f){ return f.isRequired; });
             var ruleFields = fields.filter(function(f){ return f.validationRules && f.validationRules.length > 0; });
             L += '       4000-VALIDAR.\n';
@@ -6730,13 +6730,13 @@
             }
             L += '      *\n';
 
-            /* â”€â”€ 9000-RETORNAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── 9000-RETORNAR ──────────────────────────────── */
             L += '       9000-RETORNAR.\n';
             L += '           EXEC CICS RETURN\n';
             L += '           END-EXEC.\n';
             L += '      *\n';
 
-            /* â”€â”€ 9900-INVALIDO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── 9900-INVALIDO ──────────────────────────────── */
             L += '       9900-INVALIDO.\n';
             L += "           MOVE 'TECLA NAO DEFINIDA'\n";
             L += '               TO WS-MENSAGEM\n';
@@ -6755,7 +6755,7 @@
         }
 
         function syntaxHighlightCobol(code) {
-            // DivisÃµes e seÃ§Ãµes principais que recebem separador visual estilo IDE
+            // Divisões e seções principais que recebem separador visual estilo IDE
             var MAJOR_HEADERS = [
                 'IDENTIFICATION DIVISION',
                 'ENVIRONMENT DIVISION',
@@ -6769,7 +6769,7 @@
                 var esc = escapeHtml(line);
                 var upper = line.trim().toUpperCase();
                 if (/^      \*/.test(line)) return '<span class="cc-comment">' + esc + '</span>';
-                // Separador visual para divisÃµes/seÃ§Ãµes principais
+                // Separador visual para divisões/seções principais
                 var isDivHeader = MAJOR_HEADERS.some(function(d) { return upper.startsWith(d); });
                 if (isDivHeader) return '<span class="cc-division-header">' + esc + '</span>';
                 if (/\b(DIVISION|SECTION)\b/.test(line)) return '<span class="cc-division">' + esc + '</span>';
@@ -6792,7 +6792,7 @@
                 if (/^\s+WHEN\b/.test(line)) return '<span class="cc-keyword">' + esc + '</span>';
                 if (/^\s+(IF|ELSE|END-IF)\b/.test(line)) return '<span class="cc-keyword">' + esc + '</span>';
                 if (/^\s+(PERFORM|MOVE|CONTINUE|EXIT|STOP\s+RUN)\b/.test(line)) return '<span class="cc-keyword">' + esc + '</span>';
-                /* strings literais dentro das linhas de instruÃ§Ã£o */
+                /* strings literais dentro das linhas de instrução */
                 if (/'\w[^']*'/.test(line) && !/^      \*/.test(line)) {
                     var colored = esc.replace(/'([^']*)'/g, '<span class="cc-string">\'$1\'</span>');
                     return colored;
@@ -6810,7 +6810,7 @@
             if (!body) return;
             var open = body.style.display !== 'none';
             body.style.display  = open ? 'none' : 'block';
-            if (arrow) arrow.textContent = open ? 'â–¶' : 'â–¼';
+            if (arrow) arrow.textContent = open ? '▶' : '▼';
         }
 
         function togglePropValKey(key) {
@@ -6824,17 +6824,17 @@
             /* Sincronizar checkboxes do modal Campos */
             var cb = document.querySelector('.validation-global-config input[value="' + key + '"]');
             if (cb) cb.checked = app.validationKeys.indexOf(key) >= 0;
-            /* Re-renderizar painel (preserva estado aberto da seÃ§Ã£o) */
+            /* Re-renderizar painel (preserva estado aberto da seção) */
             var bodyEl  = document.getElementById('propBodyValkeys');
             var arrowEl = document.getElementById('propArrowValkeys');
             var wasOpen = bodyEl ? bodyEl.style.display !== 'none' : false;
             updateCodePanel(true);
-            /* Restaurar estado aberto apÃ³s re-render */
+            /* Restaurar estado aberto após re-render */
             var bodyEl2  = document.getElementById('propBodyValkeys');
             var arrowEl2 = document.getElementById('propArrowValkeys');
             if (bodyEl2 && wasOpen) {
                 bodyEl2.style.display = 'block';
-                if (arrowEl2) arrowEl2.textContent = 'â–¼';
+                if (arrowEl2) arrowEl2.textContent = '▼';
             }
         }
 
@@ -6859,8 +6859,8 @@
         }
 
         // Extrai o bloco DFHMSD + DFHMDI do source BMS original (salvo em screen._bmsHeader)
-        // ou reconstrÃ³i a partir dos dados disponÃ­veis.
-        // O nome do DFHMDI Ã© sempre substituÃ­do pelo screen.name atual (evita nomes desatualizados).
+        // ou reconstrói a partir dos dados disponíveis.
+        // O nome do DFHMDI é sempre substituído pelo screen.name atual (evita nomes desatualizados).
         function _extractBMSHeader(screen) {
             function fmt(content, cont) { return content.padEnd(71) + (cont ? '-' : ' ') + '\n'; }
             var mapName = screen.name.substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -6871,7 +6871,7 @@
                 hdr = hdr.replace(/^(\w+)(\s+DFHMDI\b)/im, mapName.padEnd(6) + '  DFHMDI');
                 return hdr + '\n';
             }
-            // Caso contrÃ¡rio, gerar header neutro
+            // Caso contrário, gerar header neutro
             var mapSetName = mapName + 'M';
             var h = '';
             h += fmt(mapName.padEnd(6) + '  DFHMSD LANG=COBOL,', true);
@@ -6938,9 +6938,9 @@
                     var actualLength = chunk.length;
 
                     var safeChunk = chunk
-                        .replace(/[â•â”€â”â•Œâ•â”„â”…â”ˆâ”‰]/g, '-')
-                        .replace(/[â•‘â”‚â”ƒâ•Žâ•â”†â”‡â”Šâ”‹]/g, '|')
-                        .replace(/[â•”â•—â•šâ•â• â•£â•¦â•©â•¬â”Œâ”â””â”˜â”œâ”¤â”¬â”´â”¼]/g, '+')
+                        .replace(/[═─━╌╍┄┅┈┉]/g, '-')
+                        .replace(/[â•‘â”‚â”ƒ╎╏┆┇┊┋]/g, '|')
+                        .replace(/[╔╗╚╝╠╣╦╩╬┌┐└┘├┤┬┴┼]/g, '+')
                         .replace(/[^\x20-\x7E]/g, ' ');
                     result += formatBMSLine('        DFHMDF POS=(' + (row + 1) + ',' + (currentCol + 1) + '),', true);
                     result += formatBMSLine('          LENGTH=' + actualLength + ',', true);
@@ -6972,7 +6972,7 @@
 
             if (screen.bmsImported) {
                 // Tela importada de BMS: reutilizar o bloco DFHMSD/DFHMDI original
-                // Extrair do bmsSource original (se disponÃ­vel) antes de ser zerado,
+                // Extrair do bmsSource original (se disponível) antes de ser zerado,
                 // ou reconstruir a partir dos nomes originais preservados no screen
                 var origHeader = _extractBMSHeader(screen);
                 bms += origHeader;
@@ -6993,7 +6993,7 @@
                 bms += '*\n';
             }
 
-            // Coletar textos estÃ¡ticos da tela
+            // Coletar textos estáticos da tela
             var staticTexts = [];
             for (var row = 0; row < screen.data.length; row++) {
                 var rowData = screen.data[row];
@@ -7060,7 +7060,7 @@
                     .toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6) || ('FLD' + (idx + 1));
                 allElements.push({ type: 'field', row: field.row, col: field.col, field: field, name: varName });
             });
-            // Incluir campos PROT/saÃ­da (outputFields) importados do BMS
+            // Incluir campos PROT/saída (outputFields) importados do BMS
             if (screen.outputFields && screen.outputFields.length) {
                 screen.outputFields.forEach(function(of) {
                     allElements.push({ type: 'outputfield', row: of.row, col: of.col, outField: of });
@@ -7085,10 +7085,10 @@
                 } else {
                     var field  = element.field;
                     var attrb  = getBMSAttrString(field);
-                    // Limitar LENGTH ao mÃ¡ximo BMS-seguro: attr em col+1(1-idx), dados em col+2..80
+                    // Limitar LENGTH ao máximo BMS-seguro: attr em col+1(1-idx), dados em col+2..80
                     var fieldBMSLength = Math.min(field.length, 79 - element.col);
                     var afterCol = element.col + fieldBMSLength + 2; // 1-indexed
-                    // ComentÃ¡rios de campo apenas para telas nÃ£o importadas
+                    // Comentários de campo apenas para telas não importadas
                     if (!screen.bmsImported) {
                         bms += '*      Campo: ' + (field.label || element.name) + '\n';
                     }
@@ -7096,7 +7096,7 @@
                     bms += formatBMSLine(_n1.padEnd(6) + '  DFHMDF POS=(' + (element.row + 1) + ',' + (element.col + 1) + '),', true);
                     bms += formatBMSLine('          LENGTH=' + fieldBMSLength + ',', true);
                     bms += formatBMSLine('          ATTRB=' + attrb);
-                    // SÃ³ emitir trailing DFHMDF se couber dentro das 80 colunas
+                    // Só emitir trailing DFHMDF se couber dentro das 80 colunas
                     // Emitir sentinela ASKIP apenas se o proximo elemento na mesma linha nao estiver na posicao do sentinela
                     var sentinelCol0 = element.col + fieldBMSLength + 1;
                     var nextSameRow = null;
@@ -7110,9 +7110,9 @@
                     }
                     if (!screen.bmsImported) {
                         if (field.validationRules && field.validationRules.length > 0)
-                            bms += '*      ValidaÃ§Ãµes: ' + field.validationRules.map(function(r) { return r.type; }).join(', ') + '\n';
+                            bms += '*      Validações: ' + field.validationRules.map(function(r) { return r.type; }).join(', ') + '\n';
                         if (field.isRequired)
-                            bms += '*      CAMPO OBRIGATÃ“RIO\n';
+                            bms += '*      CAMPO OBRIGATÓRIO\n';
                     }
                 }
             }
@@ -7128,23 +7128,23 @@
             var fieldCount = {};
             return code.split('\n').map(function(line) {
                 var esc = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                // Linha de comentÃ¡rio
+                // Linha de comentário
                 if (/^\s*\*/.test(line)) return '<span class="cc-comment">' + esc + '</span>';
-                // Detectar linha de definiÃ§Ã£o de campo: NOMECAMPO DFHMDF ...
+                // Detectar linha de definição de campo: NOMECAMPO DFHMDF ...
                 var fldMatch = line.match(/^([A-Z][A-Z0-9]{0,7})\s+DFHMDF\b/i);
                 // Nomes de macros BMS
                 esc = esc.replace(/\b(DFHMSD|DFHMDI|DFHMDF)\b/g, '<span class="cc-division">$1</span>');
-                // Nomes de parÃ¢metros BMS
+                // Nomes de parâmetros BMS
                 esc = esc.replace(/\b(LANG|MODE|STORAGE|TERM|TIOAPFX|TYPE|SIZE|LINE|COLUMN|POS|LENGTH|ATTRB|INITIAL)\b(?=\s*=)/g,
                     '<span class="cc-field">$1</span>');
                 // Literais entre aspas simples
                 esc = esc.replace(/'([^']*)'/g, '<span class="cc-string">\'$1\'</span>');
-                // Valores de atributos BMS e opÃ§Ãµes de parÃ¢metros
+                // Valores de atributos BMS e opções de parâmetros
                 esc = esc.replace(/\b(UNPROT|PROT|ASKIP|NUM|BRT|DRK|NORM|IC|FSET|FINAL|INOUT|COBOL|AUTO|YES|3270)\b/g,
                     '<span class="cc-number">$1</span>');
                 // &SYSPARM (escapado como &amp;SYSPARM)
                 esc = esc.replace(/&amp;SYSPARM/g, '<span class="cc-number">&amp;SYSPARM</span>');
-                // Envolver linha de campo com Ã¢ncora para outline BMS
+                // Envolver linha de campo com âncora para outline BMS
                 if (fldMatch) {
                     var fname = fldMatch[1].toUpperCase();
                     fieldCount[fname] = (fieldCount[fname] || 0) + 1;
@@ -7185,18 +7185,18 @@
                         var numAlpha   = screen.fields ? screen.fields.filter(function(f){ return f.type === 'alpha'; }).length : 0;
                         var myRules = app.navigationRules.filter(function(r){ return r.fromScreen === screen.id; });
 
-                        /* SeÃ§Ã£o expansÃ­vel de Campos e ValidaÃ§Ãµes */
+                        /* Seção expansível de Campos e Validações */
                         var fieldsRows = '';
                         if (app.fields && app.fields.length > 0) {
                             fieldsRows = app.fields.map(function(f, i) {
                                 var label    = f.label || ('Campo ' + (i + 1));
-                                var bmsVar   = f.bmsVariable ? f.bmsVariable : 'â€”';
-                                var tipo     = f.type === 'numeric' ? 'NumÃ©rico' : 'Alfanum.';
+                                var bmsVar   = f.bmsVariable ? f.bmsVariable : '—';
+                                var tipo     = f.type === 'numeric' ? 'Numérico' : 'Alfanum.';
                                 var valCount = f.validationRules ? f.validationRules.length : 0;
-                                var obrigTag = f.isRequired ? '<span class="prop-field-tag prop-field-tag-req">ObrigatÃ³rio</span>' : '';
+                                var obrigTag = f.isRequired ? '<span class="prop-field-tag prop-field-tag-req">Obrigatório</span>' : '';
                                 var valTag   = valCount > 0
-                                    ? '<span class="prop-field-tag prop-field-tag-val">' + valCount + ' validaÃ§Ã£o(Ãµes)</span>'
-                                    : '<span class="prop-field-tag prop-field-tag-off">Sem validaÃ§Ã£o</span>';
+                                    ? '<span class="prop-field-tag prop-field-tag-val">' + valCount + ' validação(ões)</span>'
+                                    : '<span class="prop-field-tag prop-field-tag-off">Sem validação</span>';
                                 var bmsTag   = f.bmsVariable
                                     ? '<span class="prop-field-tag prop-field-tag-bms">' + f.bmsVariable + '</span>'
                                     : '<span class="prop-field-tag prop-field-tag-off">Sem BMS</span>';
@@ -7215,25 +7215,25 @@
 
                         propPanel.innerHTML =
                             '<table class="prop-table">' +
-                            '<tr><td class="prop-key">Nome</td><td class="prop-val">' + (screen.name || 'â€”') + '</td></tr>' +
-                            '<tr><td class="prop-key">Origem</td><td class="prop-val">' + (screen.sourceFile || 'â€”') + '</td></tr>' +
-                            '<tr><td class="prop-key">DimensÃµes</td><td class="prop-val">24 Ã— 80</td></tr>' +
+                            '<tr><td class="prop-key">Nome</td><td class="prop-val">' + (screen.name || '—') + '</td></tr>' +
+                            '<tr><td class="prop-key">Origem</td><td class="prop-val">' + (screen.sourceFile || '—') + '</td></tr>' +
+                            '<tr><td class="prop-key">Dimensões</td><td class="prop-val">24 × 80</td></tr>' +
                             '<tr><td class="prop-key">Total de campos</td><td class="prop-val">' + numFields + '</td></tr>' +
-                            '<tr><td class="prop-key">Campos numÃ©ricos</td><td class="prop-val">' + numNumeric + '</td></tr>' +
+                            '<tr><td class="prop-key">Campos numéricos</td><td class="prop-val">' + numNumeric + '</td></tr>' +
                             '<tr><td class="prop-key">Campos alfanum.</td><td class="prop-val">' + numAlpha + '</td></tr>' +
-                            '<tr><td class="prop-key">Regras de navegaÃ§Ã£o</td><td class="prop-val">' + myRules.length + '</td></tr>' +
-                            '<tr><td class="prop-key">Ãndice</td><td class="prop-val">' + (app.currentScreenIndex + 1) + ' / ' + app.screens.length + '</td></tr>' +
+                            '<tr><td class="prop-key">Regras de navegação</td><td class="prop-val">' + myRules.length + '</td></tr>' +
+                            '<tr><td class="prop-key">Índice</td><td class="prop-val">' + (app.currentScreenIndex + 1) + ' / ' + app.screens.length + '</td></tr>' +
                             '</table>' +
                             '<div class="prop-section-toggle" onclick="togglePropSection(\'campos\')" id="propToggleCampos">' +
-                                '<span class="prop-toggle-arrow" id="propArrowCampos">â–¶</span>' +
-                                '<span>Campos e ValidaÃ§Ãµes</span>' +
+                                '<span class="prop-toggle-arrow" id="propArrowCampos">▶</span>' +
+                                '<span>Campos e Validações</span>' +
                                 '<span class="prop-toggle-count">(' + numFields + ')</span>' +
                             '</div>' +
                             '<div class="prop-section-body" id="propBodyCampos" style="display:none;">' +
                                 fieldsRows +
                             '</div>' +
                             '<div class="prop-section-toggle" onclick="togglePropSection(\'valkeys\')" id="propToggleValkeys">' +
-                                '<span class="prop-toggle-arrow" id="propArrowValkeys">â–¶</span>' +
+                                '<span class="prop-toggle-arrow" id="propArrowValkeys">▶</span>' +
                                 '<span>Teclas que Validam</span>' +
                                 '<span class="prop-toggle-count">(' + (app.validationKeys ? app.validationKeys.length : 1) + ')</span>' +
                             '</div>' +
@@ -7249,7 +7249,7 @@
                             '</div>';
                     }
                 }
-                /* badge â€” ocultar no painel Propriedade */
+                /* badge — ocultar no painel Propriedade */
                 var badge = document.getElementById('cobolUpdateBadge');
                 if (badge) {
                     badge.textContent = '';
@@ -7262,7 +7262,7 @@
             /* Tabs CICS / BMS */
             el.style.display = '';
             if (propPanel) propPanel.style.display = 'none';
-            /* preservar posiÃ§Ã£o do scroll (a menos que seja nav update) */
+            /* preservar posição do scroll (a menos que seja nav update) */
             var prevScroll = scrollToNav ? -1 : el.scrollTop;
             try {
                 if (activeTab === 'bms') {
@@ -7274,8 +7274,8 @@
                     el.innerHTML = _wrapCodeLines(syntaxHighlightCobol(generateCobolCode(screen)));
                 }
             } catch(e) {
-                console.error('[COBOL] Erro ao gerar cÃ³digo:', e);
-                el.textContent = '      * ERRO AO GERAR CÃ“DIGO: ' + e.message;
+                console.error('[COBOL] Erro ao gerar código:', e);
+                el.textContent = '      * ERRO AO GERAR CÓDIGO: ' + e.message;
             }
             if (!scrollToNav) {
                 el.scrollTop = prevScroll;
@@ -7303,7 +7303,7 @@
             buildOutlineNav();
         }
 
-        /* ConstrÃ³i o dropdown de navegaÃ§Ã£o rÃ¡pida por DIVISION/SECTION (COBOL) ou campo (BMS) */
+        /* Constrói o dropdown de navegação rápida por DIVISION/SECTION (COBOL) ou campo (BMS) */
         function buildOutlineNav() {
             var pre  = document.getElementById('cobolCodeOutput');
             var sel  = document.getElementById('cobolOutlineNav');
@@ -7320,14 +7320,14 @@
             var activeTab = app.activeCodeTab || 'cics';
 
             if (activeTab === 'bms') {
-                /* â”€â”€ modo BMS: listar campos por nome de variÃ¡vel â”€â”€ */
+                /* ── modo BMS: listar campos por nome de variável ── */
                 var anchors = pre.querySelectorAll('.bms-fld-anchor');
                 if (anchors.length === 0) {
                     sel.innerHTML = '';
                     wrap.style.display = 'none';
                     return;
                 }
-                sel.innerHTML = '<option value="">â¬‡ Ir para campo BMS...</option>';
+                sel.innerHTML = '<option value="">⬇ Ir para campo BMS...</option>';
                 for (var k = 0; k < anchors.length; k++) {
                     var opt = document.createElement('option');
                     opt.value = anchors[k].id;
@@ -7339,7 +7339,7 @@
                 return;
             }
 
-            /* â”€â”€ modo COBOL: divisÃµes/seÃ§Ãµes â”€â”€ */
+            /* ── modo COBOL: divisões/seções ── */
             /* limpar ids antigos */
             var old = pre.querySelectorAll('[id^="ol-"]');
             for (var i = 0; i < old.length; i++) old[i].removeAttribute('id');
@@ -7349,7 +7349,7 @@
                 wrap.style.display = 'none';
                 return;
             }
-            sel.innerHTML = '<option value="">â¬‡ Ir para divisÃ£o / seÃ§Ã£o...</option>';
+            sel.innerHTML = '<option value="">⬇ Ir para divisão / seção...</option>';
             for (var j = 0; j < headers.length; j++) {
                 var id = 'ol-' + j;
                 headers[j].id = id;
@@ -7362,13 +7362,13 @@
             wrap.style.display = 'block';
         }
 
-        /* Salta para a divisÃ£o selecionada no outline dropdown */
+        /* Salta para a divisão selecionada no outline dropdown */
         function jumpToOutlineSection(id) {
             if (!id) return;
             var span = document.getElementById(id);
             var pre  = document.getElementById('cobolCodeOutput');
             if (!span || !pre) return;
-            /* calcula posiÃ§Ã£o relativa ao container rolÃ¡vel */
+            /* calcula posição relativa ao container rolável */
             var spanTop = span.getBoundingClientRect().top;
             var preTop  = pre.getBoundingClientRect().top;
             pre.scrollTop = pre.scrollTop + (spanTop - preTop) - 8;
@@ -7405,9 +7405,9 @@
             showMessage('Todas as telas limpas', 'success');
         }
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-           PAINÃ‰IS REDIMENSIONÃVEIS â€” drag to resize
-           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        /* ═══════════════════════════════════════════
+           PAINÉIS REDIMENSIONÁVEIS — drag to resize
+           ═══════════════════════════════════════════ */
         function setupResizeHandle(handleId, panelSelector, side) {
             var handle = document.getElementById(handleId);
             if (!handle) return;
@@ -7431,8 +7431,8 @@
 
             document.addEventListener('mousemove', function(e) {
                 if (!dragging) return;
-                /* side='left'  â†’ arrastar para direita amplia o painel esquerdo
-                   side='right' â†’ arrastar para esquerda amplia o painel direito */
+                /* side='left'  → arrastar para direita amplia o painel esquerdo
+                   side='right' → arrastar para esquerda amplia o painel direito */
                 var delta = side === 'left'
                     ? e.clientX - startX
                     : startX - e.clientX;
@@ -7455,12 +7455,12 @@
             setupResizeHandle('resizeRight', '.ide-code-panel',  'right');
         });
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-           AUTO-ESCALA DO TERMINAL â€” cabe sempre no painel
-           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        /* ═══════════════════════════════════════════════════
+           AUTO-ESCALA DO TERMINAL — cabe sempre no painel
+           ═══════════════════════════════════════════════════ */
         (function initFitTerminal() {
-            var TERM_W = 720;   /* 80 colunas Ã— 9px  */
-            var TERM_H = 432;   /* 24 linhas  Ã— 18px */
+            var TERM_W = 720;   /* 80 colunas × 9px  */
+            var TERM_H = 432;   /* 24 linhas  × 18px */
             var SBAR_H = 30;    /* altura da status-bar */
             var PAD    = 24;    /* margem interna do viewport */
 
@@ -7473,18 +7473,18 @@
                 var vh = viewport.clientHeight - PAD;
                 var natural_h = TERM_H + SBAR_H;
 
-                /* escala para caber na largura E na altura â€” nunca ampliar */
+                /* escala para caber na largura E na altura — nunca ampliar */
                 var scale = Math.min(vw / TERM_W, vh / natural_h, 1);
                 scale = Math.max(0.30, scale);
 
                 wrap.style.transform    = 'scale(' + scale + ')';
-                /* compensa o espaÃ§o que transform:scale deixa em branco */
+                /* compensa o espaço que transform:scale deixa em branco */
                 wrap.style.marginBottom = Math.round(natural_h * (scale - 1)) + 'px';
             }
 
             document.addEventListener('DOMContentLoaded', function() {
                 fitTerminal();
-                /* re-escala quando a janela ou os painÃ©is mudam de tamanho */
+                /* re-escala quando a janela ou os painéis mudam de tamanho */
                 var vp = document.getElementById('terminalViewport');
                 if (vp && window.ResizeObserver) {
                     new ResizeObserver(fitTerminal).observe(vp);
@@ -7492,6 +7492,6 @@
                 window.addEventListener('resize', fitTerminal);
             });
 
-            /* expor para chamadas externas (ex: apÃ³s arrastar resize-handle) */
+            /* expor para chamadas externas (ex: após arrastar resize-handle) */
             window.fitTerminal = fitTerminal;
         }());
