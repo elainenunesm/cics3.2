@@ -392,6 +392,7 @@
                 if (sd.bmsImported) screen.bmsImported = true;
                 if (sd.bmsSource)   screen.bmsSource   = sd.bmsSource;
                 if (sd._bmsHeader)  screen._bmsHeader  = sd._bmsHeader;
+                if (Array.isArray(sd.outputFields)) screen.outputFields = sd.outputFields;
 
                 return screen;
             });
@@ -960,21 +961,22 @@
                                     }
                                 }
                             }
-                            // Se tem LENGTH > 0 e é UNPROT, é campo editável
-                            else if (field.length > 0 && field.attrb.includes('UNPROT')) {
+                            // Se tem LENGTH > 0 e NÃO é PROT nem ASKIP → campo editável (UNPROT é o default em BMS)
+                            // ATTRB=NORM equivale a ATTRB=(UNPROT,NORM) — sem PROT explícito = editável
+                            else if (field.length > 0 && !field.attrb.includes('PROT') && !field.attrb.includes('ASKIP')) {
                                 const fieldType = field.attrb.includes('NUM') ? 'numeric' : 'alpha';
                                 const newField = new Field(field.row, field.col, field.length, fieldType, '');
                                 
                                 // Configurar atributos BMS do campo
                                 if (field.attrb.includes('UNPROT')) newField.bmsAttributes.protection = 'UNPROT';
-                                if (field.attrb.includes('PROT')) newField.bmsAttributes.protection = 'PROT';
-                                if (field.attrb.includes('NUM')) newField.bmsAttributes.type = 'NUM';
-                                if (field.attrb.includes('NORM')) newField.bmsAttributes.type = 'NORM';
-                                if (field.attrb.includes('BRT')) newField.bmsAttributes.intensity = 'BRT';
-                                if (field.attrb.includes('DRK')) newField.bmsAttributes.intensity = 'DRK';
-                                if (field.attrb.includes('IC')) newField.bmsAttributes.ic = true;
-                                if (field.attrb.includes('FSET')) newField.bmsAttributes.fset = true;
-                                if (field.attrb.includes('ASKIP')) newField.bmsAttributes.askip = true;
+                                if (field.attrb.includes('PROT'))   newField.bmsAttributes.protection = 'PROT';
+                                if (field.attrb.includes('NUM'))    newField.bmsAttributes.type = 'NUM';
+                                if (field.attrb.includes('NORM'))   newField.bmsAttributes.type = 'NORM';
+                                if (field.attrb.includes('BRT'))    newField.bmsAttributes.intensity = 'BRT';
+                                if (field.attrb.includes('DRK'))    newField.bmsAttributes.intensity = 'DRK';
+                                if (field.attrb.includes('IC'))     newField.bmsAttributes.ic = true;
+                                if (field.attrb.includes('FSET'))   newField.bmsAttributes.fset = true;
+                                if (field.attrb.includes('ASKIP'))  newField.bmsAttributes.askip = true;
                                 
                                 // Adicionar nome da variável BMS se houver
                                 if (field.name) {
@@ -982,15 +984,32 @@
                                     newField.label = field.name.substring(0, 6);
                                 }
                                 
-                                currentScreen.fields.push(newField);
+                                // Se já existe campo na mesma posição (ex: MENSAGEM do sistema),
+                                // atualizar em vez de duplicar
+                                const existingIdx = currentScreen.fields.findIndex(function(ef) {
+                                    return ef.row === newField.row && ef.col === newField.col;
+                                });
+                                if (existingIdx >= 0) {
+                                    const ef = currentScreen.fields[existingIdx];
+                                    ef.length = newField.length;
+                                    ef.type = newField.type;
+                                    ef.bmsAttributes = newField.bmsAttributes;
+                                    if (field.name) {
+                                        ef.bmsVariable = field.name.substring(0, 6);
+                                        ef.label = field.name.substring(0, 6);
+                                    }
+                                } else {
+                                    currentScreen.fields.push(newField);
+                                }
                             }
-                            // Se tem LENGTH > 0 e é PROT sem INITIAL, é área de saída (preenchida pelo COBOL)
+                            // Se tem LENGTH > 0 e é PROT explícito sem INITIAL → área de saída (preenchida pelo COBOL)
                             else if (field.length > 0 && !field.attrb.includes('ASKIP')) {
                                 currentScreen.outputFields.push({
                                     row:    field.row,
                                     col:    field.col,
                                     length: field.length,
                                     name:   field.name || null,
+                                    attrb:  field.attrb || 'PROT',
                                     bright: field.attrb.includes('BRT')
                                 });
                             }
@@ -4482,6 +4501,9 @@
                         bmsSource: s.bmsSource || null,
                         bmsImported: s.bmsImported || false,
                         _bmsHeader: s._bmsHeader || null,
+                        outputFields: (s.outputFields || []).map(function(of) {
+                            return { row: of.row, col: of.col, length: of.length, name: of.name || null, attrb: of.attrb || 'NORM', bright: !!of.bright };
+                        }),
                         fields: s.fields.map(function(f) {
                             return {
                                 row: f.row,
@@ -7014,6 +7036,12 @@
                     .toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6) || ('FLD' + (idx + 1));
                 allElements.push({ type: 'field', row: field.row, col: field.col, field: field, name: varName });
             });
+            // Incluir campos PROT/saída (outputFields) importados do BMS
+            if (screen.outputFields && screen.outputFields.length) {
+                screen.outputFields.forEach(function(of) {
+                    allElements.push({ type: 'outputfield', row: of.row, col: of.col, outField: of });
+                });
+            }
             allElements.sort(function(a, b) {
                 if (a.row !== b.row) return a.row - b.row;
                 return a.col - b.col;
@@ -7022,6 +7050,13 @@
             allElements.forEach(function(element) {
                 if (element.type === 'label') {
                     bms += generateTextDFHMDF(element.text, element.row, element.col);
+                } else if (element.type === 'outputfield') {
+                    var of = element.outField;
+                    var oAttrb = of.attrb || 'NORM';
+                    var oPrefix = of.name ? of.name.substring(0, 6).padEnd(6) + '  ' : '        ';
+                    bms += formatBMSLine(oPrefix + 'DFHMDF POS=(' + (of.row + 1) + ',' + (of.col + 1) + '),', true);
+                    bms += formatBMSLine('              LENGTH=' + of.length + ',', true);
+                    bms += formatBMSLine('              ATTRB=' + oAttrb);
                 } else {
                     var field  = element.field;
                     var attrb  = getBMSAttrString(field);
