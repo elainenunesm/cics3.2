@@ -139,8 +139,8 @@
                                 
                                 if (labelText) {
                                     field.label = labelText;
-                                    // Gerar variável BMS baseada no label
-                                    field.bmsVariable = labelText.toUpperCase().replace(/[^A-Z0-9]/g, '') + 'I';
+                                    // Gerar variável BMS baseada no label (máx 5 chars + 'I' = 6 total)
+                                    field.bmsVariable = labelText.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 5) + 'I';
                                 }
                             }
                             
@@ -155,14 +155,14 @@
                 const varCount = {};
                 for (const f of this.fields) {
                     if (!f.bmsVariable) continue;
-                    const base = f.bmsVariable.substring(0, 8).toUpperCase();
+                    const base = f.bmsVariable.substring(0, 6).toUpperCase();
                     if (!(base in varCount)) {
                         varCount[base] = 1;
                         f.bmsVariable = base;
                     } else {
                         varCount[base]++;
                         const suffix = String(varCount[base]);
-                        f.bmsVariable = base.substring(0, 8 - suffix.length) + suffix;
+                        f.bmsVariable = base.substring(0, 6 - suffix.length) + suffix;
                     }
                 }
             }
@@ -1799,7 +1799,7 @@
                         screen.bmsImported = true;
                         if (prevBmsHdr) screen._bmsHeader = prevBmsHdr;
                     }
-                    if ((prevBmsSrc || prevBmsImp) && prevFields) {
+                    if (prevFields) {
                         const pvMap = {};
                         prevFields.forEach(function(f) {
                             if (f.bmsVariable) pvMap[f.row + ':' + f.col] = f.bmsVariable;
@@ -1867,15 +1867,13 @@
                 screen.content = newContent;
 
                 // Salvar mapeamento posição → bmsVariable dos campos originais
-                // para reutilizar os nomes do BMS importado após o re-parse
+                // para reutilizar os nomes após o re-parse (importados ou definidos manualmente)
                 const bmsVarByPos = {};
                 const wasBmsImported = !!screen.bmsImported;
                 const savedBmsHeader = screen._bmsHeader || null;
-                if (screen.bmsSource || wasBmsImported) {
-                    (screen.fields || []).forEach(function(f) {
-                        if (f.bmsVariable) bmsVarByPos[f.row + ':' + f.col] = f.bmsVariable;
-                    });
-                }
+                (screen.fields || []).forEach(function(f) {
+                    if (f.bmsVariable) bmsVarByPos[f.row + ':' + f.col] = f.bmsVariable;
+                });
 
                 // Descartar bmsSource: após edição o BMS será regenerado via generateBMSCode,
                 // mas com os nomes originais restaurados onde a posição coincide
